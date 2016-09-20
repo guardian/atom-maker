@@ -1,34 +1,64 @@
-scalaVersion in ThisBuild := "2.11.8"
+import com.typesafe.sbt.SbtPgp.autoImportImpl._
+import sbtrelease._
+
+import ReleaseStateTransformations._
+
+Sonatype.sonatypeSettings
 
 name := "atom-maker-lib"
 
-organization in ThisBuild := "com.gu"
+organization := "com.gu"
 
-/*libraryDependencies ++= Seq(
-  "com.gu"                     %% "content-atom-model"           % contentAtomVersion,
-  "org.apache.thrift"          %  "libthrift"                    % "0.9.3",
-  "com.twitter"                %% "scrooge-core"                 % scroogeVersion,
-  "com.twitter"                %% "scrooge-serializer"           % scroogeVersion,
-  "com.amazonaws"              % "aws-java-sdk-sts"              % awsVersion,
-  "com.typesafe.scala-logging" %% "scala-logging"                % "3.4.0",
-  "org.typelevel"              %% "cats-core"                    % "0.6.0", // for interacting with scanamo
-  "com.fasterxml.jackson.core" %  "jackson-databind"             % "2.7.0",
-  "com.gu"                     %% "pan-domain-auth-play_2-5"     % pandaVer,
-  ws, // for panda
-  "com.gu"                     %% "pan-domain-auth-verification" % pandaVer,
-  "com.gu"                     %% "pan-domain-auth-core"         % pandaVer,
-  "org.scalatestplus.play"     %% "scalatestplus-play"           % "1.5.0"   % "test",
-  "org.mockito"                %  "mockito-core"                 % mockitoVersion % "test",
-  "org.scala-lang.modules"     %% "scala-xml"                    % "1.0.5"   % "test"
-) ++ scanamoDeps*/
+scalaVersion := "2.11.8"
+scalaVersion in ThisBuild := "2.11.8"
 
-lazy val atomPublisher = project in file("./atom-publisher-lib")
+val sonatypeReleaseSettings = Seq(
+  licenses := Seq("Apache V2" -> url("http://www.apache.org/licenses/LICENSE-2.0.html")),
+  scmInfo := Some(ScmInfo(url("https://github.com/guardian/atom-maker-lib"),
+  "scm:git:git@github.com:guardian/atom-maker-lib.git")),
+  pomExtra := (
+    <url>https://github.com/guardian/atom-maker-lib</url>
+      <developers>
+        <developer>
+          <id>paulmr</id>
+          <name>Paul Roberts</name>
+          <url>https://github.com/paulmr</url>
+        </developer>
+      </developers>
+    ),
+    releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+    releaseProcess := Seq[ReleaseStep](
+      checkSnapshotDependencies,
+      inquireVersions,
+      runClean,
+      runTest,
+      setReleaseVersion,
+      commitReleaseVersion,
+      tagRelease,
+      publishArtifacts,
+      setNextVersion,
+      commitNextVersion,
+      releaseStepCommand("sonatypeReleaseAll"),
+      pushChanges
+    )
+)
+
+lazy val atomPublisher = (project in file("./atom-publisher-lib"))
+  .settings(
+    organization := "com.gu",
+    name := "atom-publisher-lib"
+  )
+  .settings(publishArtifact in Test := true)
+  .settings(sonatypeReleaseSettings: _*)
 
 lazy val atomManagerPlay = (project in file("./atom-manager-play-lib"))
+  .settings(
+    organization := "com.gu",
+    name := "atom-manager-play-lib"
+  )
   .settings(publishArtifact in Test := true)
   .dependsOn(atomPublisher % "test->test;compile->compile")
 
 lazy val root = (project in file("."))
   .dependsOn(atomPublisher, atomManagerPlay % "test->test;compile->compile")
   .aggregate(atomPublisher, atomManagerPlay)
-  .settings(aggregate := false, aggregate in Test := true)
