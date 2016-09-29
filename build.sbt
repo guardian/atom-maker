@@ -57,8 +57,10 @@ lazy val atomManagerPlay = (project in file("./atom-manager-play-lib"))
     name := "atom-manager-play-lib"
   )
   .settings(publishArtifact in Test := true)
+  .settings(sonatypeReleaseSettings: _*)
   .dependsOn(atomPublisher % "test->test;compile->compile")
 
-lazy val root = (project in file("."))
+lazy val atomLibraries = (project in file("."))
+  .settings (publishArtifact := false)
   .dependsOn(atomPublisher, atomManagerPlay % "test->test;compile->compile")
   .aggregate(atomPublisher, atomManagerPlay)
