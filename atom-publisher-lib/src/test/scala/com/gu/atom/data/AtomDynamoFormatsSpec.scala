@@ -18,7 +18,7 @@ import ScanamoUtil._
 class AtomDynamoFormatsSpec extends FunSpec with Matchers {
   //implicit val shortFmt = DynamoFormat.xmap[Short, Int](i => Xor.Right(i.toShort))(_.toInt)
 
-  val testAtomData: AtomData = AtomData.Media(MediaAtom(Nil, Some(1L), "Test media atom", Category.Feature))
+  val testAtomData: AtomData = AtomData.Media(MediaAtom(Nil, Some(1L), "Test media atom", Category.Feature, Some("Description"), None))
 
   describe("atomdata dynamo format") {
     it("should convert test atom") {
