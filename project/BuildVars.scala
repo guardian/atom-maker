@@ -10,6 +10,6 @@ object BuildVars {
 
   lazy val scanamoDeps = Seq(
     "com.gu"                     %% "scanamo"          % "0.7.0",
-    "com.gu"                     %% "scanamo-scrooge"  % "0.1.2"
+    "com.gu"                     %% "scanamo-scrooge"  % "0.1.3"
   )
 }
