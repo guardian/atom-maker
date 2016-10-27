@@ -50,7 +50,7 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
       _ => ReadError
     }
 
-  def listAtoms: DataStoreResult[Iterator[Atom]] = findAtoms(tableName).rightMap(_.iterator)
+  def listAtoms: DataStoreResult[Iterator[Atom]] = findAtoms(tableName).map(_.iterator)
 }
 
 abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]
@@ -62,7 +62,7 @@ abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]
     val validationCheck = NestedKeyIs(
       List('contentChangeDetails, 'revision), LT, newAtom.contentChangeDetails.revision
     )
-    val res = (Scanamo.exec(dynamo)(Table[Atom](tableName).given(validationCheck).put(newAtom)))
+    val res = Scanamo.exec(dynamo)(Table[Atom](tableName).given(validationCheck).put(newAtom))
     res.map(_ => ())
       .leftMap(_ => VersionConflictError(newAtom.contentChangeDetails.revision))
   }
@@ -75,5 +75,5 @@ abstract class PublishedDynamoDataStore[D : ClassTag : DynamoFormat]
   with PublishedDataStore {
 
   def updateAtom(newAtom: Atom) =
-    succeed((Scanamo.exec(dynamo)(Table[Atom](tableName).put(newAtom))))
+    succeed(Scanamo.exec(dynamo)(Table[Atom](tableName).put(newAtom)))
 }

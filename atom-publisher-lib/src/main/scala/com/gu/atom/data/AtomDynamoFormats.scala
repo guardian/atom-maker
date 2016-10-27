@@ -31,11 +31,10 @@ trait AtomDynamoFormats[A] {
     new DynamoFormat[AtomData] {
       def write(atomData: AtomData): AttributeValue = {
         val pf = fromAtomData andThen { case data: A => arg0.write(data) }
-        pf.applyOrElse(atomData, fallback _)
+        pf.applyOrElse(atomData, fallback)
       }
 
-      def read(attr: AttributeValue) = arg0.read(attr) map (toAtomData _)
-
+      def read(attr: AttributeValue) = arg0.read(attr) map toAtomData
     }
 }
 
