@@ -25,8 +25,6 @@ object ScanamoUtil {
   implicit def seqFormat[T](implicit f: DynamoFormat[T]): DynamoFormat[Seq[T]] =
     xmap[Seq[T], List[T]](l => Xor.right(l.toSeq))(_.toList)
 
-  implicit val flagsFormat = xmap[Flags, Option[Boolean]](o => Xor.right(Flags.apply(o)))(f => Flags.unapply(f).get)
-
   // joins keys with a document separator to dig into MultipleValue keys
   case class NestedKeyIs[V : DynamoFormat](keys: List[Symbol], operator: DynamoOperator, v: V)
 
