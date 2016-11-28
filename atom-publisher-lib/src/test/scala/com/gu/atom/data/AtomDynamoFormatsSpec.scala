@@ -33,7 +33,9 @@ class AtomDynamoFormatsSpec extends FunSpec with Matchers {
       categoryId = Some("categoryId"),
       license = None,
       commentsEnabled = Some(true),
-      channelId = None))))
+      channelId = None,
+      privacyStatus = Some(PrivacyStatus.Private)
+    ))))
 
   describe("atomdata dynamo format") {
     it("should convert test atom") {
