@@ -12,7 +12,7 @@ import ScanamoUtil._
 
 import com.gu.atom.util.AtomImplicitsGeneral
 
-import cats.data.Xor
+import cats.syntax.either._
 
 import com.gu.atom.TestData._
 
@@ -38,7 +38,7 @@ class DynamoDataStoreSpec
 
   describe("DynamoDataStore") {
     it("should create a new atom") { dataStores =>
-      dataStores.preview.createAtom(testAtom) should equal(Xor.Right())
+      dataStores.preview.createAtom(testAtom) should equal(Right())
     }
 
     it("should return the atom") { dataStores =>
@@ -50,7 +50,7 @@ class DynamoDataStoreSpec
         .copy(defaultHtml = "<div>updated</div>")
         .bumpRevision
 
-      dataStores.preview.updateAtom(updated) should equal(Xor.Right())
+      dataStores.preview.updateAtom(updated) should equal(Right())
       dataStores.preview.getAtom(testAtom.id).value should equal(updated)
     }
 
@@ -59,7 +59,7 @@ class DynamoDataStoreSpec
         .copy()
         .withRevision(1)
 
-      dataStores.published.updateAtom(updated) should equal(Xor.Right())
+      dataStores.published.updateAtom(updated) should equal(Right())
       dataStores.published.getAtom(testAtom.id).value should equal(updated)
     }
   }

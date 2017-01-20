@@ -1,7 +1,6 @@
 package com.gu.atom.play.test
 
 import scala.util.{Failure, Success}
-import cats.data.Xor
 import com.gu.atom.TestData
 
 import scala.collection.mutable.{ Map => MMap }

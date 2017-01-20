@@ -9,7 +9,7 @@ import DynamoFormat.xmap
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.gu.contentatom.thrift.Flags
 
-import cats.data.Xor
+import cats.syntax.either._
 
 /*
  * We are using `scanamo` and `scanamo-scrooge` in this library to
@@ -23,7 +23,7 @@ import cats.data.Xor
 object ScanamoUtil {
 
   implicit def seqFormat[T](implicit f: DynamoFormat[T]): DynamoFormat[Seq[T]] =
-    xmap[Seq[T], List[T]](l => Xor.right(l.toSeq))(_.toList)
+    xmap[Seq[T], List[T]](l => Right(l.toSeq))(_.toList)
 
   // joins keys with a document separator to dig into MultipleValue keys
   case class NestedKeyIs[V : DynamoFormat](keys: List[Symbol], operator: DynamoOperator, v: V)

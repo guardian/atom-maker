@@ -12,7 +12,7 @@ import scala.reflect.macros.blackbox.Context
 import com.gu.scanamo.scrooge.ScroogeDynamoFormat
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 
-import cats.data.Xor
+import cats.syntax.either._
 
 import ScroogeDynamoFormat._
 import DynamoFormat._

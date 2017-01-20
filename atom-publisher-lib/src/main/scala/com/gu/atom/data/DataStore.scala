@@ -1,6 +1,6 @@
 package com.gu.atom.data
 
-import cats.data.Xor
+import cats.syntax.either._
 import com.gu.contentatom.thrift.Atom
 
 import com.typesafe.scalalogging.LazyLogging
@@ -31,10 +31,10 @@ trait DataStore extends DataStoreResult {
 }
 
 trait DataStoreResult {
-  type DataStoreResult[R] = Xor[DataStoreError, R]
+  type DataStoreResult[R] = Either[DataStoreError, R]
 
-  def fail(error: DataStoreError): DataStoreResult[Nothing] = Xor.left(error)
-  def succeed[R](result: => R): DataStoreResult[R] = Xor.right(result)
+  def fail(error: DataStoreError): DataStoreResult[Nothing] = Left(error)
+  def succeed[R](result: => R): DataStoreResult[R] = Right(result)
 }
 
 object DataStoreResult extends DataStoreResult

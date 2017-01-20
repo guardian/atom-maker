@@ -5,7 +5,7 @@ import com.gu.contentatom.thrift._
 import org.mockito.Mockito._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import cats.data.Xor
+import cats.syntax.either._
 import com.gu.atom.play._
 import play.api.mvc.Controller
 import play.api.test.Helpers._
@@ -19,7 +19,7 @@ class AtomAPIActionsSpec extends AtomSuite with Inside {
 
   override def initialPublishedDataStore = {
     val m = publishedDataStoreMockWithTestData
-    when(m.updateAtom(any())).thenReturn(Xor.Right(()))
+    when(m.updateAtom(any())).thenReturn(Right(()))
     m
   }
 

@@ -1,6 +1,6 @@
 package com.gu.atom.play
 
-import cats.data.Xor
+import cats.syntax.either._
 import com.gu.atom.data._
 import com.gu.atom.publish._
 import com.gu.contentatom.thrift._
@@ -44,8 +44,8 @@ trait AtomAPIActions extends Controller {
     livePublisher.publishAtomEvent(event) match {
       case Success(_) =>
         publishedDataStore.updateAtom(updatedAtom) match {
-          case Xor.Right(_) => NoContent
-          case Xor.Left(err) => InternalServerError(
+          case Right(_) => NoContent
+          case Left(err) => InternalServerError(
             jsonError(s"could not update after publish: ${err.toString}")
           )
         }
