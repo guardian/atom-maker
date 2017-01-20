@@ -1,6 +1,6 @@
 package data
 
-import cats.data.Xor
+import cats.syntax.either._
 import com.gu.contentatom.thrift.Atom
 
 import com.gu.atom.data._
@@ -37,7 +37,7 @@ class MemoryStore extends DataStore {
     }
   }
 
-  def listAtoms = Xor.right(dataStore.values.iterator)
+  def listAtoms = Right(dataStore.values.iterator)
 }
 
 class PreviewMemoryStore(initial: Map[String, Atom]) extends MemoryStore(initial) with PreviewDataStore

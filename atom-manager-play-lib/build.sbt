@@ -9,7 +9,6 @@ name := "atom-manager-play"
 libraryDependencies ++= Seq(
   "com.typesafe.play"      %% "play"                  % playVersion,
   "com.gu"                 %% "content-atom-model"    % contentAtomVersion,
-  "org.typelevel"          %% "cats-core"             % "0.7.0",
   "org.scalatestplus.play" %% "scalatestplus-play"    % "1.5.0"   % "test",
   "com.amazonaws"          %  "aws-java-sdk-dynamodb" % awsVersion,
   "org.mockito"            %  "mockito-core"          % mockitoVersion % "test"

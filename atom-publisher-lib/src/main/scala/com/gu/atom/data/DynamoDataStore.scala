@@ -5,8 +5,10 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.gu.contentatom.thrift.{ Atom, AtomData, Flags }
 import com.gu.scanamo.{ Scanamo, DynamoFormat, Table }
 import com.gu.scanamo.query._
-import cats.data.Xor
-import cats.implicits._
+import cats.instances.either._
+import cats.instances.list._
+import cats.syntax.either._
+import cats.syntax.traverse._
 import scala.reflect.ClassTag
 import com.twitter.scrooge.ThriftStruct
 
@@ -34,7 +36,7 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
   // this should probably return an Either so we can report an error,
   // e.g. if the atom exists, but it can't be deseralised
   def getAtom(id: String): Option[Atom] = get(UniqueKey(KeyEquals('id, id))) match {
-    case Some(Xor.Right(atom)) => Some(atom)
+    case Some(Right(atom)) => Some(atom)
     case _ => None
   }
 

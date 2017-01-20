@@ -2,7 +2,7 @@ package com.gu.atom.data
 
 import org.scalatest.{ Matchers, FunSpec }
 
-import cats.data.Xor
+import cats.syntax.either._
 
 import com.gu.contentatom.thrift._
 import com.gu.contentatom.thrift.atom.media._
@@ -16,7 +16,6 @@ import DynamoFormat._
 import ScanamoUtil._
 
 class AtomDynamoFormatsSpec extends FunSpec with Matchers {
-  //implicit val shortFmt = DynamoFormat.xmap[Short, Int](i => Xor.Right(i.toShort))(_.toInt)
 
   val testAtomData: AtomData = AtomData.Media(MediaAtom(
     assets = Nil,
@@ -42,7 +41,7 @@ class AtomDynamoFormatsSpec extends FunSpec with Matchers {
       import MediaAtomDynamoFormats._
 
       (DynamoFormat[AtomData].read(DynamoFormat[AtomData].write(testAtomData))
-         should equal(Xor.right(testAtomData)))
+         should equal(Right(testAtomData)))
     }
   }
 }
