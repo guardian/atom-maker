@@ -5,7 +5,6 @@ import com.gu.contentatom.thrift._
 import org.mockito.Mockito._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import cats.syntax.either._
 import com.gu.atom.play._
 import play.api.mvc.Controller
 import play.api.test.Helpers._
