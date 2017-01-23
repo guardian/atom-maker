@@ -50,14 +50,6 @@ class DynamoDataStoreSpec
       dataStores.preview.getAtom(testAtom.id) should equal(Right(testAtom))
     }
 
-    it("should create the atom with both primary and sort key") { dataStores =>
-      dataStores.compositeKey.createAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id)), testAtom) should equal(Right())
-    }
-
-    it("should return the atom with both primary and sort key") { dataStores =>
-      dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(testAtom))
-    }
-
     it("should update the atom") { dataStores =>
       val updated = testAtom
         .copy(defaultHtml = "<div>updated</div>")
@@ -65,6 +57,23 @@ class DynamoDataStoreSpec
 
       dataStores.preview.updateAtom(updated) should equal(Right())
       dataStores.preview.getAtom(testAtom.id) should equal(Right(updated))
+    }
+
+    it("should create the atom with composite key") { dataStores =>
+      dataStores.compositeKey.createAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id)), testAtom) should equal(Right())
+    }
+
+    it("should return the atom with composite key") { dataStores =>
+      dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(testAtom))
+    }
+
+    it("should update an atom with composite key") { dataStores =>
+      val updated = testAtom
+        .copy(defaultHtml = "<div>updated</div>")
+        .bumpRevision
+
+      dataStores.compositeKey.updateAtom(updated) should equal(Right())
+      dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(updated))
     }
 
     it("should update a published atom") { dataStores =>
