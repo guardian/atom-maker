@@ -14,7 +14,10 @@ class MemoryStore extends DataStore {
 
   private val dataStore = collection.mutable.Map[String, Atom]()
 
-  def getAtom(id: String) = dataStore.get(id)
+  def getAtom(id: String) = dataStore.get(id) match {
+    case Some(atom) => succeed(atom)
+    case None => fail(IDNotFound)
+  }
 
   def createAtom(atom: Atom) = dataStore.synchronized {
     if(dataStore.get(atom.id).isDefined) {
@@ -26,14 +29,14 @@ class MemoryStore extends DataStore {
 
   def updateAtom(newAtom: Atom) = dataStore.synchronized {
     getAtom(newAtom.id) match {
-      case Some(oldAtom) =>
+      case Right(oldAtom) =>
         if(oldAtom.contentChangeDetails.revision >=
              newAtom.contentChangeDetails.revision) {
           fail(VersionConflictError(newAtom.contentChangeDetails.revision))
         } else {
           succeed(dataStore(newAtom.id) = newAtom)
         }
-      case None => fail(IDNotFound)
+      case Left(_) => fail(IDNotFound)
     }
   }
 

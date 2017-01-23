@@ -17,7 +17,7 @@ case class  VersionConflictError(requestVer: Long)
 
 trait DataStore extends DataStoreResult {
 
-  def getAtom(id: String): Option[Atom]
+  def getAtom(id: String): DataStoreResult[Atom]
 
   def createAtom(atom: Atom): DataStoreResult[Unit]
 
@@ -42,3 +42,5 @@ object DataStoreResult extends DataStoreResult
 trait PreviewDataStore extends DataStore
 
 trait PublishedDataStore extends DataStore
+
+case class DynamoCompositeKey(partitionKey: String, sortKey: Option[String] = None)

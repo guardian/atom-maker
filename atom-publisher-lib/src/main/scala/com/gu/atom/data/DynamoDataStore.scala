@@ -32,20 +32,27 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
   // useful shortcuts
   private val get  = Scanamo.get[Atom](dynamo)(tableName) _
   private val put  = Scanamo.put[Atom](dynamo)(tableName) _
-
-  // this should probably return an Either so we can report an error,
-  // e.g. if the atom exists, but it can't be deseralised
-  def getAtom(id: String): Option[Atom] = get(UniqueKey(KeyEquals('id, id))) match {
-    case Some(Right(atom)) => Some(atom)
-    case _ => None
+  private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey) = dynamoCompositeKey match {
+    case DynamoCompositeKey(partitionKey, None) => UniqueKey(KeyEquals('id, partitionKey))
+    case DynamoCompositeKey(partitionKey, Some(sortKey)) => UniqueKey(KeyEquals('atomType, partitionKey) and KeyEquals('id, sortKey))
   }
 
-  def createAtom(atom: Atom) =
-    if (get(UniqueKey(KeyEquals('id, atom.id))).isDefined)
+  def getAtom(id: String): DataStoreResult[Atom] = getAtom(DynamoCompositeKey(id))
+
+  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
+    get(uniqueKey(dynamoCompositeKey)) match {
+      case Some(Right(atom)) => Right(atom)
+      case Some(Left(error)) => Left(ReadError)
+      case None => Left(IDNotFound)
+    }
+
+  def createAtom(atom: Atom): DataStoreResult[Unit] = createAtom(DynamoCompositeKey(atom.id), atom)
+
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Unit] =
+    if (get(uniqueKey(dynamoCompositeKey)).isDefined)
       fail(IDConflictError)
     else
       succeed(put(atom))
-
 
   private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
     Scanamo.scan[Atom](dynamo)(tableName).sequenceU.leftMap {
