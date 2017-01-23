@@ -23,24 +23,25 @@ trait AtomAPIActions extends Controller {
   def publishAtom(atomId: String) = Action { implicit req =>
 
     val revisionNumber = publishedDataStore.getAtom(atomId) match {
-      case Some(atom) => atom.contentChangeDetails.revision + 1
-      case None => 1
+      case Right(atom) => atom.contentChangeDetails.revision + 1
+      case Left(_) => 1
     }
 
     previewDataStore.getAtom(atomId) match {
-      case Some(atom) => {
+      case Right(atom) => {
         val updatedAtom = atom.copy(
           contentChangeDetails = atom.contentChangeDetails.copy(published = Some(ChangeRecord((new Date()).getTime(), None)))
         ).withRevision(revisionNumber)
 
         savePublishedAtom(updatedAtom)
       }
-      case None => NotFound(jsonError(s"No such atom $atomId"))
+      case Left(IDNotFound) => NotFound(jsonError(s"No such atom $atomId"))
+      case Left(error) => InternalServerError(s"Could not publish $error")
     }
   }
 
   private def savePublishedAtom(updatedAtom: Atom) = {
-    val event = ContentAtomEvent(updatedAtom, EventType.Update, (new Date()).getTime())
+    val event = ContentAtomEvent(updatedAtom, EventType.Update, new Date().getTime)
     livePublisher.publishAtomEvent(event) match {
       case Success(_) =>
         publishedDataStore.updateAtom(updatedAtom) match {

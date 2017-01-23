@@ -59,6 +59,15 @@ class DynamoDataStoreSpec
       dataStores.preview.getAtom(testAtom.id) should equal(Right(updated))
     }
 
+    it("should update a published atom") { dataStores =>
+      val updated = testAtom
+        .copy()
+        .withRevision(1)
+
+      dataStores.published.updateAtom(updated) should equal(Right())
+      dataStores.published.getAtom(testAtom.id) should equal(Right(updated))
+    }
+
     it("should create the atom with composite key") { dataStores =>
       dataStores.compositeKey.createAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id)), testAtom) should equal(Right())
     }
@@ -74,15 +83,6 @@ class DynamoDataStoreSpec
 
       dataStores.compositeKey.updateAtom(updated) should equal(Right())
       dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(updated))
-    }
-
-    it("should update a published atom") { dataStores =>
-      val updated = testAtom
-        .copy()
-        .withRevision(1)
-
-      dataStores.published.updateAtom(updated) should equal(Right())
-      dataStores.published.getAtom(testAtom.id) should equal(Right(updated))
     }
   }
 
