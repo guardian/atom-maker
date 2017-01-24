@@ -21,10 +21,6 @@ import cats.syntax.either._
  */
 
 object ScanamoUtil {
-
-  implicit def seqFormat[T](implicit f: DynamoFormat[T]): DynamoFormat[Seq[T]] =
-    xmap[Seq[T], List[T]](l => Right(l.toSeq))(_.toList)
-
   // joins keys with a document separator to dig into MultipleValue keys
   case class NestedKeyIs[V : DynamoFormat](keys: List[Symbol], operator: DynamoOperator, v: V)
 

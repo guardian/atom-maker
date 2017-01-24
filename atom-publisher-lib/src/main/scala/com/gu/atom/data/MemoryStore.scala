@@ -7,23 +7,36 @@ import com.gu.atom.data._
 
 class MemoryStore extends DataStore {
 
-  def this(initial: Map[String, Atom] = Map.empty) = {
+  def this(initial: Map[DynamoCompositeKey, Atom] = Map.empty) = {
     this()
     dataStore ++= initial
   }
 
-  private val dataStore = collection.mutable.Map[String, Atom]()
+  private val dataStore = collection.mutable.Map[DynamoCompositeKey, Atom]()
 
-  def getAtom(id: String) = dataStore.get(id) match {
+  def getAtom(id: String) = dataStore.get(DynamoCompositeKey(id)) match {
+    case Some(atom) => succeed(atom)
+    case None => fail(IDNotFound)
+  }
+
+  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] = dataStore.get(dynamoCompositeKey) match {
     case Some(atom) => succeed(atom)
     case None => fail(IDNotFound)
   }
 
   def createAtom(atom: Atom) = dataStore.synchronized {
-    if(dataStore.get(atom.id).isDefined) {
+    if(dataStore.get(DynamoCompositeKey(atom.id)).isDefined) {
       fail(IDConflictError)
     } else {
-      succeed(dataStore(atom.id) = atom)
+      succeed(dataStore(DynamoCompositeKey(atom.id)) = atom)
+    }
+  }
+
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Unit] = dataStore.synchronized {
+    if(dataStore.get(dynamoCompositeKey).isDefined) {
+      fail(IDConflictError)
+    } else {
+      succeed(dataStore(dynamoCompositeKey) = atom)
     }
   }
 
@@ -34,7 +47,7 @@ class MemoryStore extends DataStore {
              newAtom.contentChangeDetails.revision) {
           fail(VersionConflictError(newAtom.contentChangeDetails.revision))
         } else {
-          succeed(dataStore(newAtom.id) = newAtom)
+          succeed(dataStore(DynamoCompositeKey(newAtom.id)) = newAtom)
         }
       case Left(_) => fail(IDNotFound)
     }
@@ -43,5 +56,5 @@ class MemoryStore extends DataStore {
   def listAtoms = Right(dataStore.values.iterator)
 }
 
-class PreviewMemoryStore(initial: Map[String, Atom]) extends MemoryStore(initial) with PreviewDataStore
-class PublishedMemoryStore(initial: Map[String, Atom]) extends MemoryStore(initial) with PublishedDataStore
+class PreviewMemoryStore(initial: Map[DynamoCompositeKey, Atom]) extends MemoryStore(initial) with PreviewDataStore
+class PublishedMemoryStore(initial: Map[DynamoCompositeKey, Atom]) extends MemoryStore(initial) with PublishedDataStore
