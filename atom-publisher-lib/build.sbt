@@ -18,9 +18,6 @@ startDynamoDBLocal <<= startDynamoDBLocal.dependsOn(compile in Test)
 test in Test <<= (test in Test).dependsOn(startDynamoDBLocal)
 testOptions in Test <+= dynamoDBLocalTestCleanup
 
-
-
-
 libraryDependencies ++= Seq(
   "com.gu"                     %% "content-atom-model"   % contentAtomVersion,
   "com.amazonaws"              %  "aws-java-sdk-kinesis" % awsVersion,

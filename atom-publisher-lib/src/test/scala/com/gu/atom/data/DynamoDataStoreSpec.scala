@@ -22,18 +22,23 @@ class DynamoDataStoreSpec
     with OptionValues
     with BeforeAndAfterAll
     with AtomImplicitsGeneral {
+
   val tableName = "atom-test-table"
   val publishedTableName = "published-atom-test-table"
+  val compositeKeyTableName = "composite-key-table"
 
   case class DataStores(preview: PreviewDynamoDataStore[MediaAtom],
-                        published: PublishedDynamoDataStore[MediaAtom])
+                        published: PublishedDynamoDataStore[MediaAtom],
+                        compositeKey: PreviewDynamoDataStore[MediaAtom]
+                       )
 
   type FixtureParam = DataStores
 
   def withFixture(test: OneArgTest) = {
     val previewDb = new PreviewDynamoDataStore[MediaAtom](LocalDynamoDB.client, tableName) with MediaAtomDynamoFormats
-    val publishedDb = new PublishedDynamoDataStore[MediaAtom](LocalDynamoDB.client, tableName) with MediaAtomDynamoFormats
-    super.withFixture(test.toNoArgTest(DataStores(previewDb, publishedDb)))
+    val compositeKeyDb = new PreviewDynamoDataStore[MediaAtom](LocalDynamoDB.client, compositeKeyTableName) with MediaAtomDynamoFormats
+    val publishedDb = new PublishedDynamoDataStore[MediaAtom](LocalDynamoDB.client, publishedTableName) with MediaAtomDynamoFormats
+    super.withFixture(test.toNoArgTest(DataStores(previewDb, publishedDb, compositeKeyDb)))
   }
 
   describe("DynamoDataStore") {
@@ -42,7 +47,7 @@ class DynamoDataStoreSpec
     }
 
     it("should return the atom") { dataStores =>
-      dataStores.preview.getAtom(testAtom.id).value should equal(testAtom)
+      dataStores.preview.getAtom(testAtom.id) should equal(Right(testAtom))
     }
 
     it("should update the atom") { dataStores =>
@@ -51,7 +56,7 @@ class DynamoDataStoreSpec
         .bumpRevision
 
       dataStores.preview.updateAtom(updated) should equal(Right())
-      dataStores.preview.getAtom(testAtom.id).value should equal(updated)
+      dataStores.preview.getAtom(testAtom.id) should equal(Right(updated))
     }
 
     it("should update a published atom") { dataStores =>
@@ -60,7 +65,24 @@ class DynamoDataStoreSpec
         .withRevision(1)
 
       dataStores.published.updateAtom(updated) should equal(Right())
-      dataStores.published.getAtom(testAtom.id).value should equal(updated)
+      dataStores.published.getAtom(testAtom.id) should equal(Right(updated))
+    }
+
+    it("should create the atom with composite key") { dataStores =>
+      dataStores.compositeKey.createAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id)), testAtom) should equal(Right())
+    }
+
+    it("should return the atom with composite key") { dataStores =>
+      dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(testAtom))
+    }
+
+    it("should update an atom with composite key") { dataStores =>
+      val updated = testAtom
+        .copy(defaultHtml = "<div>updated</div>")
+        .bumpRevision
+
+      dataStores.compositeKey.updateAtom(updated) should equal(Right())
+      dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(updated))
     }
   }
 
@@ -68,5 +90,6 @@ class DynamoDataStoreSpec
     val client = LocalDynamoDB.client
     LocalDynamoDB.createTable(client)(tableName)('id -> S)
     LocalDynamoDB.createTable(client)(publishedTableName)('id -> S)
+    LocalDynamoDB.createTable(client)(compositeKeyTableName)('atomType -> S, 'id -> S)
   }
 }
