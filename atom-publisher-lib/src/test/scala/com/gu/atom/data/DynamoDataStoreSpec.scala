@@ -22,9 +22,9 @@ class DynamoDataStoreSpec
     with OptionValues
     with BeforeAndAfterAll
     with AtomImplicitsGeneral {
+
   val tableName = "atom-test-table"
   val publishedTableName = "published-atom-test-table"
-
   val compositeKeyTableName = "composite-key-table"
 
   case class DataStores(preview: PreviewDynamoDataStore[MediaAtom],

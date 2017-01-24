@@ -14,23 +14,14 @@ class MemoryStore extends DataStore {
 
   private val dataStore = collection.mutable.Map[DynamoCompositeKey, Atom]()
 
-  def getAtom(id: String) = dataStore.get(DynamoCompositeKey(id)) match {
-    case Some(atom) => succeed(atom)
-    case None => fail(IDNotFound)
-  }
+  def getAtom(id: String): DataStoreResult[Atom] = getAtom(DynamoCompositeKey(id))
 
   def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] = dataStore.get(dynamoCompositeKey) match {
     case Some(atom) => succeed(atom)
     case None => fail(IDNotFound)
   }
 
-  def createAtom(atom: Atom) = dataStore.synchronized {
-    if(dataStore.get(DynamoCompositeKey(atom.id)).isDefined) {
-      fail(IDConflictError)
-    } else {
-      succeed(dataStore(DynamoCompositeKey(atom.id)) = atom)
-    }
-  }
+  def createAtom(atom: Atom): DataStoreResult[Unit] = createAtom(DynamoCompositeKey(atom.id), atom)
 
   def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Unit] = dataStore.synchronized {
     if(dataStore.get(dynamoCompositeKey).isDefined) {
