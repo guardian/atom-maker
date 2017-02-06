@@ -18,8 +18,6 @@ import AtomData._
 import com.gu.atom.data._
 import ScanamoUtil._
 
-import scala.util.Success
-
 abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
   (dynamo: AmazonDynamoDBClient, tableName: String)
     extends DataStore
