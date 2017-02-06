@@ -79,6 +79,40 @@ object TestData {
 
   val testAtom = testAtoms.head
 
+  val testAtomForDeletion = Atom(
+    id = "delete",
+    atomType = AtomType.Media,
+    defaultHtml = "<div></div>",
+    data = AtomData.Media(
+      MediaAtom(
+        activeVersion = Some(2L),
+        title = "Test atom for deletion",
+        assets = List(
+          Asset(
+            assetType = AssetType.Video,
+            version = 1L,
+            id = "123",
+            platform = Platform.Youtube
+          ),
+          Asset(
+            assetType = AssetType.Video,
+            version = 2L,
+            id = "456z",
+            platform = Platform.Youtube
+          )
+        ),
+        category = Category.News,
+        plutoProjectId = None,
+        duration = None,
+        source = None,
+        posterUrl = None,
+        description = None,
+        metadata = None
+      )
+    ),
+    contentChangeDetails = ContentChangeDetails(revision = 1)
+  )
+
   def testAtomEvent(atom: Atom = testAtom) =
     ContentAtomEvent(testAtom, EventType.Update, new Date().getTime)
 }

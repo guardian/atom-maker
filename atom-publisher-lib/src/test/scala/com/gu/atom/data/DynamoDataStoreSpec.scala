@@ -84,6 +84,17 @@ class DynamoDataStoreSpec
       dataStores.compositeKey.updateAtom(updated) should equal(Right())
       dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(updated))
     }
+
+    it("should delete an atom if it exists in the table") { dataStores =>
+      dataStores.preview.createAtom(testAtomForDeletion) should equal(Right())
+      dataStores.preview.deleteAtom(testAtomForDeletion.id) should equal(Right())
+    }
+
+    it("should delete an atom with composite key if it exists in the table") { dataStores =>
+      val key = DynamoCompositeKey(testAtomForDeletion.atomType.toString, Some(testAtomForDeletion.id))
+      dataStores.compositeKey.createAtom(key, testAtomForDeletion) should equal(Right())
+      dataStores.compositeKey.deleteAtom(key) should equal(Right())
+    }
   }
 
   override def beforeAll() = {

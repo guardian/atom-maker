@@ -45,6 +45,14 @@ class MemoryStore extends DataStore {
   }
 
   def listAtoms = Right(dataStore.values.iterator)
+
+  def deleteAtom(id: String): DataStoreResult[Unit] = deleteAtom(DynamoCompositeKey(id))
+
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Unit] =
+    dataStore.remove(dynamoCompositeKey) match {
+      case Some(_) => succeed(())
+      case _ => fail(IDNotFound)
+    }
 }
 
 class PreviewMemoryStore(initial: Map[DynamoCompositeKey, Atom]) extends MemoryStore(initial) with PreviewDataStore
