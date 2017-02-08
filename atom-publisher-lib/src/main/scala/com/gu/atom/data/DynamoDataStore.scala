@@ -1,24 +1,21 @@
 package com.gu.atom.data
 
-import com.amazonaws.services.dynamodbv2.model.{ AttributeValue, PutItemResult }
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, DeleteItemResult, PutItemResult}
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.gu.contentatom.thrift.{ Atom, AtomData, Flags }
-import com.gu.scanamo.{ Scanamo, DynamoFormat, Table }
+import com.gu.contentatom.thrift.{Atom, AtomData, Flags}
+import com.gu.scanamo.{DynamoFormat, Scanamo, Table}
 import com.gu.scanamo.query._
 import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.either._
 import cats.syntax.traverse._
+
 import scala.reflect.ClassTag
 import com.twitter.scrooge.ThriftStruct
-
 import DynamoFormat._
 import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
-
 import AtomData._
-
 import com.gu.atom.data._
-
 import ScanamoUtil._
 
 abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
@@ -27,11 +24,14 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
     with AtomDynamoFormats[D] {
 
   sealed trait DynamoResult
+
   implicit class DynamoPutResult(res: PutItemResult) extends DynamoResult
 
   // useful shortcuts
-  private val get  = Scanamo.get[Atom](dynamo)(tableName) _
-  private val put  = Scanamo.put[Atom](dynamo)(tableName) _
+  private val get = Scanamo.get[Atom](dynamo)(tableName) _
+  private val put = Scanamo.put[Atom](dynamo)(tableName) _
+  private val delete = Scanamo.delete(dynamo)(tableName) _
+
   private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey) = dynamoCompositeKey match {
     case DynamoCompositeKey(partitionKey, None) => UniqueKey(KeyEquals('id, partitionKey))
     case DynamoCompositeKey(partitionKey, Some(sortKey)) => UniqueKey(KeyEquals('atomType, partitionKey) and KeyEquals('id, sortKey))
@@ -60,6 +60,15 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
     }
 
   def listAtoms: DataStoreResult[Iterator[Atom]] = findAtoms(tableName).map(_.iterator)
+
+  def deleteAtom(id: String): DataStoreResult[Unit] = deleteAtom(DynamoCompositeKey(id))
+
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Unit] = {
+    getAtom(dynamoCompositeKey) match {
+      case Right(_) => succeed(delete(uniqueKey(dynamoCompositeKey)))
+      case Left(error) => fail(error)
+    }
+  }
 }
 
 abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]
