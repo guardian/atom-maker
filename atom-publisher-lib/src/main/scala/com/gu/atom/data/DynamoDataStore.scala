@@ -61,11 +61,13 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
 
   def listAtoms: DataStoreResult[Iterator[Atom]] = findAtoms(tableName).map(_.iterator)
 
-  def deleteAtom(id: String): DataStoreResult[Unit] = deleteAtom(DynamoCompositeKey(id))
+  def deleteAtom(id: String): DataStoreResult[Atom] = deleteAtom(DynamoCompositeKey(id))
 
-  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Unit] = {
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] = {
     getAtom(dynamoCompositeKey) match {
-      case Right(_) => succeed(delete(uniqueKey(dynamoCompositeKey)))
+      case Right(atom) =>
+        delete(uniqueKey(dynamoCompositeKey))
+        succeed(atom)
       case Left(error) => fail(error)
     }
   }

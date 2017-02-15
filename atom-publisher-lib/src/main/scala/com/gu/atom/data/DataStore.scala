@@ -33,9 +33,9 @@ trait DataStore extends DataStoreResult {
 
   def updateAtom(newAtom: Atom): DataStoreResult[Unit]
 
-  def deleteAtom(id: String): DataStoreResult[Unit]
+  def deleteAtom(id: String): DataStoreResult[Atom]
 
-  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Unit]
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom]
 }
 
 trait DataStoreResult {

@@ -87,13 +87,13 @@ class DynamoDataStoreSpec
 
     it("should delete an atom if it exists in the table") { dataStores =>
       dataStores.preview.createAtom(testAtomForDeletion) should equal(Right())
-      dataStores.preview.deleteAtom(testAtomForDeletion.id) should equal(Right())
+      dataStores.preview.deleteAtom(testAtomForDeletion.id) should equal(Right(testAtomForDeletion))
     }
 
     it("should delete an atom with composite key if it exists in the table") { dataStores =>
       val key = DynamoCompositeKey(testAtomForDeletion.atomType.toString, Some(testAtomForDeletion.id))
       dataStores.compositeKey.createAtom(key, testAtomForDeletion) should equal(Right())
-      dataStores.compositeKey.deleteAtom(key) should equal(Right())
+      dataStores.compositeKey.deleteAtom(key) should equal(Right(testAtomForDeletion))
     }
   }
 

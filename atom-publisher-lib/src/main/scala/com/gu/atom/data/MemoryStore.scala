@@ -46,11 +46,11 @@ class MemoryStore extends DataStore {
 
   def listAtoms = Right(dataStore.values.iterator)
 
-  def deleteAtom(id: String): DataStoreResult[Unit] = deleteAtom(DynamoCompositeKey(id))
+  def deleteAtom(id: String): DataStoreResult[Atom] = deleteAtom(DynamoCompositeKey(id))
 
-  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Unit] =
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
     dataStore.remove(dynamoCompositeKey) match {
-      case Some(_) => succeed(())
+      case Some(atom) => succeed(atom)
       case _ => fail(IDNotFound)
     }
 }
