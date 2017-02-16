@@ -1,8 +1,8 @@
 package com.gu.atom.data
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, DeleteItemResult, PutItemResult}
+import com.amazonaws.services.dynamodbv2.model.PutItemResult
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.gu.contentatom.thrift.{Atom, AtomData, Flags}
+import com.gu.contentatom.thrift.{Atom, AtomData}
 import com.gu.scanamo.{DynamoFormat, Scanamo, Table}
 import com.gu.scanamo.query._
 import cats.instances.either._
@@ -11,11 +11,8 @@ import cats.syntax.either._
 import cats.syntax.traverse._
 
 import scala.reflect.ClassTag
-import com.twitter.scrooge.ThriftStruct
 import DynamoFormat._
 import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
-import AtomData._
-import com.gu.atom.data._
 import ScanamoUtil._
 
 abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
@@ -85,8 +82,7 @@ abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]
       List('contentChangeDetails, 'revision), LT, newAtom.contentChangeDetails.revision
     )
     val res = Scanamo.exec(dynamo)(Table[Atom](tableName).given(validationCheck).put(newAtom))
-    res.map(_ => ())
-      .leftMap(_ => VersionConflictError(newAtom.contentChangeDetails.revision))
+    res.fold(_ => Left(VersionConflictError(newAtom.contentChangeDetails.revision)), _ => Right())
   }
 
 }
