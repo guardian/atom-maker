@@ -55,7 +55,7 @@ class DynamoDataStoreSpec
         .copy(defaultHtml = "<div>updated</div>")
         .bumpRevision
 
-      dataStores.preview.updateAtom(updated) should equal(Right())
+      dataStores.preview.updateAtom(updated) should equal(Right(updated))
       dataStores.preview.getAtom(testAtom.id) should equal(Right(updated))
     }
 
@@ -64,7 +64,7 @@ class DynamoDataStoreSpec
         .copy()
         .withRevision(1)
 
-      dataStores.published.updateAtom(updated) should equal(Right())
+      dataStores.published.updateAtom(updated) should equal(Right(updated))
       dataStores.published.getAtom(testAtom.id) should equal(Right(updated))
     }
 
@@ -81,7 +81,7 @@ class DynamoDataStoreSpec
         .copy(defaultHtml = "<div>updated</div>")
         .bumpRevision
 
-      dataStores.compositeKey.updateAtom(updated) should equal(Right())
+      dataStores.compositeKey.updateAtom(updated) should equal(Right(updated))
       dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(updated))
     }
 

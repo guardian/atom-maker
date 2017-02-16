@@ -82,7 +82,7 @@ abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]
       List('contentChangeDetails, 'revision), LT, newAtom.contentChangeDetails.revision
     )
     val res = Scanamo.exec(dynamo)(Table[Atom](tableName).given(validationCheck).put(newAtom))
-    res.fold(_ => Left(VersionConflictError(newAtom.contentChangeDetails.revision)), _ => Right())
+    res.fold(_ => Left(VersionConflictError(newAtom.contentChangeDetails.revision)), _ => Right(newAtom))
   }
 
 }
@@ -92,6 +92,8 @@ abstract class PublishedDynamoDataStore[D : ClassTag : DynamoFormat]
   extends DynamoDataStore[D](dynamo, tableName)
   with PublishedDataStore {
 
-  def updateAtom(newAtom: Atom) =
-    succeed(Scanamo.exec(dynamo)(Table[Atom](tableName).put(newAtom)))
+  def updateAtom(newAtom: Atom) = {
+    Scanamo.exec(dynamo)(Table[Atom](tableName).put(newAtom))
+    succeed(newAtom)
+  }
 }

@@ -39,7 +39,8 @@ class MemoryStore extends DataStore {
              newAtom.contentChangeDetails.revision) {
           fail(VersionConflictError(newAtom.contentChangeDetails.revision))
         } else {
-          succeed(dataStore(DynamoCompositeKey(newAtom.id)) = newAtom)
+          dataStore(DynamoCompositeKey(newAtom.id)) = newAtom
+          succeed(newAtom)
         }
       case Left(_) => fail(IDNotFound)
     }

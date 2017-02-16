@@ -25,13 +25,12 @@ trait DataStore extends DataStoreResult {
 
   def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom]
 
-  /* this will only allow the update if the version in atom is later
-   * than the version stored in the database, otherwise it will report
-   * it as a version conflict error */
-
   def listAtoms: DataStoreResult[Iterator[Atom]]
 
-  def updateAtom(newAtom: Atom): DataStoreResult[Unit]
+  /* this will only allow the update if the version in atom is later
+ * than the version stored in the database, otherwise it will report
+ * it as a version conflict error */
+  def updateAtom(newAtom: Atom): DataStoreResult[Atom]
 
   def deleteAtom(id: String): DataStoreResult[Atom]
 
