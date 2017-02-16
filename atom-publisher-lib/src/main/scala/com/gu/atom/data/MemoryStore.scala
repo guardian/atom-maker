@@ -21,13 +21,14 @@ class MemoryStore extends DataStore {
     case None => fail(IDNotFound)
   }
 
-  def createAtom(atom: Atom): DataStoreResult[Unit] = createAtom(DynamoCompositeKey(atom.id), atom)
+  def createAtom(atom: Atom): DataStoreResult[Atom] = createAtom(DynamoCompositeKey(atom.id), atom)
 
-  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Unit] = dataStore.synchronized {
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom] = dataStore.synchronized {
     if(dataStore.get(dynamoCompositeKey).isDefined) {
       fail(IDConflictError)
     } else {
-      succeed(dataStore(dynamoCompositeKey) = atom)
+      dataStore(dynamoCompositeKey) = atom
+      succeed(atom)
     }
   }
 

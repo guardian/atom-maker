@@ -21,9 +21,9 @@ trait DataStore extends DataStoreResult {
 
   def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom]
 
-  def createAtom(atom: Atom): DataStoreResult[Unit]
+  def createAtom(atom: Atom): DataStoreResult[Atom]
 
-  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Unit]
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom]
 
   /* this will only allow the update if the version in atom is later
    * than the version stored in the database, otherwise it will report

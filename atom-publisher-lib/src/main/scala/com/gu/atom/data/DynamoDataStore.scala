@@ -46,13 +46,15 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
       case None => Left(IDNotFound)
     }
 
-  def createAtom(atom: Atom): DataStoreResult[Unit] = createAtom(DynamoCompositeKey(atom.id), atom)
+  def createAtom(atom: Atom): DataStoreResult[Atom] = createAtom(DynamoCompositeKey(atom.id), atom)
 
-  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Unit] =
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom] =
     if (get(uniqueKey(dynamoCompositeKey)).isDefined)
       fail(IDConflictError)
-    else
-      succeed(put(atom))
+    else {
+      put(atom)
+      succeed(atom)
+    }
 
   private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
     Scanamo.scan[Atom](dynamo)(tableName).sequenceU.leftMap {
