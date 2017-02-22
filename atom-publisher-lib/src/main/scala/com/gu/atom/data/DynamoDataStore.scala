@@ -14,6 +14,7 @@ import scala.reflect.ClassTag
 import DynamoFormat._
 import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
 import ScanamoUtil._
+import com.amazonaws.{AmazonClientException, AmazonServiceException}
 
 abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
   (dynamo: AmazonDynamoDBClient, tableName: String)
@@ -28,6 +29,30 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
   private val get = Scanamo.get[Atom](dynamo)(tableName) _
   private val put = Scanamo.put[Atom](dynamo)(tableName) _
   private val delete = Scanamo.delete(dynamo)(tableName) _
+
+  private def exceptionSafePut(atom: Atom): DataStoreResult[Atom] = {
+    try {
+      put(atom)
+      succeed(atom)
+    } catch {
+      case e: Exception => fail(handleException(e))
+    }
+  }
+
+  private def exceptionSafeDelete(dynamoCompositeKey :DynamoCompositeKey, atom: Atom): DataStoreResult[Atom] = {
+    try {
+      delete(uniqueKey(dynamoCompositeKey))
+      succeed(atom)
+    } catch {
+      case e: Exception => fail(handleException(e))
+    }
+  }
+
+  private def handleException(e: Exception) = e match {
+    case serviceError: AmazonServiceException => DynamoError(serviceError.getErrorMessage)
+    case clientError: AmazonClientException => ClientError(clientError.getMessage)
+    case _ => ReadError
+  }
 
   private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey) = dynamoCompositeKey match {
     case DynamoCompositeKey(partitionKey, None) => UniqueKey(KeyEquals('id, partitionKey))
@@ -46,11 +71,21 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
   def createAtom(atom: Atom): DataStoreResult[Atom] = createAtom(DynamoCompositeKey(atom.id), atom)
 
   def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom] =
-    if (get(uniqueKey(dynamoCompositeKey)).isDefined)
-      fail(IDConflictError)
-    else {
-      put(atom)
-      succeed(atom)
+    getAtom(dynamoCompositeKey) match {
+      case Right(atom) =>
+        fail(IDConflictError)
+      case Left(error) =>
+        exceptionSafePut(atom)
+    }
+
+  def deleteAtom(id: String): DataStoreResult[Atom] = deleteAtom(DynamoCompositeKey(id))
+
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
+    getAtom(dynamoCompositeKey) match {
+      case Right(atom) =>
+        exceptionSafeDelete(dynamoCompositeKey, atom)
+      case Left(error) =>
+        fail(error)
     }
 
   private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
@@ -60,16 +95,6 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
 
   def listAtoms: DataStoreResult[Iterator[Atom]] = findAtoms(tableName).map(_.iterator)
 
-  def deleteAtom(id: String): DataStoreResult[Atom] = deleteAtom(DynamoCompositeKey(id))
-
-  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] = {
-    getAtom(dynamoCompositeKey) match {
-      case Right(atom) =>
-        delete(uniqueKey(dynamoCompositeKey))
-        succeed(atom)
-      case Left(error) => fail(error)
-    }
-  }
 }
 
 abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]

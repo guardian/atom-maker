@@ -14,6 +14,8 @@ case object ReadError extends DataStoreError("Read error")
 case class  DataError(info: String) extends DataStoreError(info)
 case class  VersionConflictError(requestVer: Long)
     extends DataStoreError(s"Update has version $requestVer, which is earlier or equal to data store version")
+case class  DynamoError(info: String) extends DataStoreError(s"Dynamo was unable to process this request. Error message ${info}")
+case class  ClientError(info: String) extends DataStoreError(s"Client was unable to get a response from a service, or if the client was unable to parse the response from a service. Error message: ${info}")
 
 trait DataStore extends DataStoreResult {
 
