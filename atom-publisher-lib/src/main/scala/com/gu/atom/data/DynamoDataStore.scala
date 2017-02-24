@@ -1,8 +1,8 @@
 package com.gu.atom.data
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, DeleteItemResult, PutItemResult}
+import com.amazonaws.services.dynamodbv2.model.PutItemResult
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.gu.contentatom.thrift.{Atom, AtomData, Flags}
+import com.gu.contentatom.thrift.{Atom, AtomData}
 import com.gu.scanamo.{DynamoFormat, Scanamo, Table}
 import com.gu.scanamo.query._
 import cats.instances.either._
@@ -11,12 +11,10 @@ import cats.syntax.either._
 import cats.syntax.traverse._
 
 import scala.reflect.ClassTag
-import com.twitter.scrooge.ThriftStruct
 import DynamoFormat._
 import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
-import AtomData._
-import com.gu.atom.data._
 import ScanamoUtil._
+import com.amazonaws.{AmazonClientException, AmazonServiceException}
 
 abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
   (dynamo: AmazonDynamoDBClient, tableName: String)
@@ -32,6 +30,30 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
   private val put = Scanamo.put[Atom](dynamo)(tableName) _
   private val delete = Scanamo.delete(dynamo)(tableName) _
 
+  private def exceptionSafePut(atom: Atom): DataStoreResult[Atom] = {
+    try {
+      put(atom)
+      succeed(atom)
+    } catch {
+      case e: Exception => fail(handleException(e))
+    }
+  }
+
+  private def exceptionSafeDelete(dynamoCompositeKey :DynamoCompositeKey, atom: Atom): DataStoreResult[Atom] = {
+    try {
+      delete(uniqueKey(dynamoCompositeKey))
+      succeed(atom)
+    } catch {
+      case e: Exception => fail(handleException(e))
+    }
+  }
+
+  private def handleException(e: Exception) = e match {
+    case serviceError: AmazonServiceException => DynamoError(serviceError.getErrorMessage)
+    case clientError: AmazonClientException => ClientError(clientError.getMessage)
+    case _ => ReadError
+  }
+
   private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey) = dynamoCompositeKey match {
     case DynamoCompositeKey(partitionKey, None) => UniqueKey(KeyEquals('id, partitionKey))
     case DynamoCompositeKey(partitionKey, Some(sortKey)) => UniqueKey(KeyEquals('atomType, partitionKey) and KeyEquals('id, sortKey))
@@ -46,13 +68,25 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
       case None => Left(IDNotFound)
     }
 
-  def createAtom(atom: Atom): DataStoreResult[Unit] = createAtom(DynamoCompositeKey(atom.id), atom)
+  def createAtom(atom: Atom): DataStoreResult[Atom] = createAtom(DynamoCompositeKey(atom.id), atom)
 
-  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Unit] =
-    if (get(uniqueKey(dynamoCompositeKey)).isDefined)
-      fail(IDConflictError)
-    else
-      succeed(put(atom))
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom] =
+    getAtom(dynamoCompositeKey) match {
+      case Right(atom) =>
+        fail(IDConflictError)
+      case Left(error) =>
+        exceptionSafePut(atom)
+    }
+
+  def deleteAtom(id: String): DataStoreResult[Atom] = deleteAtom(DynamoCompositeKey(id))
+
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
+    getAtom(dynamoCompositeKey) match {
+      case Right(atom) =>
+        exceptionSafeDelete(dynamoCompositeKey, atom)
+      case Left(error) =>
+        fail(error)
+    }
 
   private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
     Scanamo.scan[Atom](dynamo)(tableName).sequenceU.leftMap {
@@ -61,16 +95,6 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
 
   def listAtoms: DataStoreResult[Iterator[Atom]] = findAtoms(tableName).map(_.iterator)
 
-  def deleteAtom(id: String): DataStoreResult[Atom] = deleteAtom(DynamoCompositeKey(id))
-
-  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] = {
-    getAtom(dynamoCompositeKey) match {
-      case Right(atom) =>
-        delete(uniqueKey(dynamoCompositeKey))
-        succeed(atom)
-      case Left(error) => fail(error)
-    }
-  }
 }
 
 abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]
@@ -83,8 +107,7 @@ abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]
       List('contentChangeDetails, 'revision), LT, newAtom.contentChangeDetails.revision
     )
     val res = Scanamo.exec(dynamo)(Table[Atom](tableName).given(validationCheck).put(newAtom))
-    res.map(_ => ())
-      .leftMap(_ => VersionConflictError(newAtom.contentChangeDetails.revision))
+    res.fold(_ => Left(VersionConflictError(newAtom.contentChangeDetails.revision)), _ => Right(newAtom))
   }
 
 }
@@ -94,6 +117,8 @@ abstract class PublishedDynamoDataStore[D : ClassTag : DynamoFormat]
   extends DynamoDataStore[D](dynamo, tableName)
   with PublishedDataStore {
 
-  def updateAtom(newAtom: Atom) =
-    succeed(Scanamo.exec(dynamo)(Table[Atom](tableName).put(newAtom)))
+  def updateAtom(newAtom: Atom) = {
+    Scanamo.exec(dynamo)(Table[Atom](tableName).put(newAtom))
+    succeed(newAtom)
+  }
 }
