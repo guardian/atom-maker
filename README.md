@@ -7,7 +7,7 @@ For the atoms to appear in capi you will also have to make necessary changes to 
 
 An example of a project that uses these libraries to manage atoms can be found [here] (https://github.com/guardian/media-atom-maker).
 
-##Atom-publisher-lib
+##Atom-publisher-lib ![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gu/atom-publisher-lib_2.11/badge.svg)
 - Provides that traits you an inject in your application
 
 ###PublishedStore and PreviewDataStore
@@ -139,7 +139,7 @@ bind(classOf[PreviewAtomReindexer])
 bind(classOf[PublishedAtomReindexer])
 .toProvider(classOf[PublishedAtomReindexerProvider])
 ```
-##Atom-manager-play-lib
+##Atom-manager-play-lib ![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gu/atom-manager-play_2.11/badge.svg)
 - Sits on top of `atom-publisher-lib`
 - Provides methods for publishing and reindexing atoms
 
