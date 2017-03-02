@@ -18,7 +18,7 @@ class AtomAPIActionsSpec extends AtomSuite with Inside {
 
   override def initialPublishedDataStore = {
     val m = publishedDataStoreMockWithTestData
-    when(m.updateAtom(any())).thenReturn(Right((testAtom)))
+    when(m.updateAtom(any())).thenReturn(Right(testAtom))
     m
   }
 
@@ -36,14 +36,14 @@ class AtomAPIActionsSpec extends AtomSuite with Inside {
     }
 
     "update publish time and version for atom" in AtomTestConf() { implicit conf =>
-      val startTime = (new Date()).getTime()
+      val startTime = new Date().getTime
       val atomCaptor = ArgumentCaptor.forClass(classOf[Atom])
       val result = call(apiActions.publishAtom("1"), FakeRequest())
       status(result) mustEqual NO_CONTENT
       verify(conf.publishedDataStore).updateAtom(atomCaptor.capture())
       
-      inside(atomCaptor.getValue()) {
-        case Atom("1", _, _, _, _, changeDetails, _) => {
+      inside(atomCaptor.getValue) {
+        case Atom("1", _, _, _, _, changeDetails, _, _) => {
           changeDetails.published.value.date must be >= startTime
           changeDetails.revision mustEqual 2
         }
