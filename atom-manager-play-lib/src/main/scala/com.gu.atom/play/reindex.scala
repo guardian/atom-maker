@@ -42,7 +42,7 @@ class ReindexActor(reindexer: AtomReindexer) extends Actor {
       sender ! RSuccess
 
     case GetStatus =>
-      sender ! lastJob.map(statusReply _)
+      sender ! lastJob.map(statusReply)
   }
 
   def inProgressState(job: AtomReindexJob): Receive = {
@@ -98,7 +98,7 @@ class ReindexController @Inject() (
                                    config: Configuration,
                                    system: ActorSystem) extends Controller {
 
-  def now() = (new Date()).getTime()
+  def now() = new Date().getTime
 
   implicit val ec = system.dispatcher
 
@@ -113,7 +113,7 @@ class ReindexController @Inject() (
     lazy val apiKey = config.getString("reindexApiKey").get
 
     def invokeBlock[A](request: Request[A], block: (Request[A] => Future[Result])) = {
-      if(request.getQueryString("api").filter(_ == apiKey).isDefined)
+      if(request.getQueryString("api").contains(apiKey))
         block(request)
       else
         Future.successful(Unauthorized(""))

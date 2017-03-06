@@ -2,11 +2,12 @@ package com.gu.atom
 
 import java.util.Date
 
+import com.gu.contentatom.thrift.atom.cta.CTAAtom
 import com.gu.contentatom.thrift.atom.media._
 import com.gu.contentatom.thrift.{ContentAtomEvent, _}
 
 object TestData {
-  val testAtoms = Seq(
+  val testAtoms = List(
     Atom(
       id = "1",
       atomType = AtomType.Media,
@@ -71,6 +72,14 @@ object TestData {
           metadata = None
         )
       ),
+      contentChangeDetails = ContentChangeDetails(revision = 1)
+    ),
+    Atom(
+      id = "3",
+      atomType = AtomType.Cta,
+      defaultHtml = "<div></div>",
+      title = Some("The only CTA atom"),
+      data = AtomData.Cta(CTAAtom(url = "http://lalala.com")),
       contentChangeDetails = ContentChangeDetails(revision = 1)
     )
   )

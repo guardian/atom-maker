@@ -1,8 +1,12 @@
 package com.gu.atom.data
 
-import com.amazonaws.services.dynamodbv2.model.PutItemResult
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemResult}
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
+import com.gu.contentatom.thrift.AtomData.{Cta, Media}
+import com.gu.contentatom.thrift.atom.cta.CTAAtom
+import com.gu.contentatom.thrift.atom.media.MediaAtom
 import com.gu.contentatom.thrift.{Atom, AtomData}
+import com.gu.scanamo.error.{TypeCoercionError, DynamoReadError}
 import com.gu.scanamo.{DynamoFormat, Scanamo, Table}
 import com.gu.scanamo.query._
 import cats.instances.either._
@@ -16,10 +20,68 @@ import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
 import ScanamoUtil._
 import com.amazonaws.{AmazonClientException, AmazonServiceException}
 
-abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
+abstract class DynamoDataStore
   (dynamo: AmazonDynamoDBClient, tableName: String)
-    extends DataStore
-    with AtomDynamoFormats[D] {
+    extends DataStore {
+
+//  implicit val atomDataFormat: DynamoFormat[AtomData] =  new DynamoFormat[AtomData] {
+//
+//    val mediaFormat: DynamoFormat[Media] = new DynamoFormat[Media] {
+//      private def fromAtomData: PartialFunction[AtomData, MediaAtom] = { case AtomData.Media(data) => data }
+//      private def toAtomData(data: MediaAtom): AtomData = AtomData.Media(data)
+//
+//      def write(atomData: Media): AttributeValue = {
+//        val pf = fromAtomData andThen { case data: Media => arg0.write(data) }
+//        pf.applyOrElse(atomData, fallback)
+//      }
+//
+//      def read(attr: AttributeValue): Either[DynamoReadError, AtomData] = read(attr).map(x => toAtomData(x.asInstanceOf[MediaAtom]))
+//    }
+
+  def mediaFormat(implicit arg0: DynamoFormat[MediaAtom]): DynamoFormat[AtomData] = {
+    def fromAtomData: PartialFunction[AtomData, MediaAtom] = { case AtomData.Media(data) => data }
+    def toAtomData(data: MediaAtom): AtomData = AtomData.Media(data)
+    def fallback(atomData: AtomData): AttributeValue =
+      new AttributeValue().withS(s"unknown atom data type $atomData")
+
+    new DynamoFormat[AtomData] {
+      def write(atomData: AtomData): AttributeValue = {
+        val pf = fromAtomData andThen { case data: MediaAtom => arg0.write(data) }
+        pf.applyOrElse(atomData, fallback)
+      }
+
+      def read(attr: AttributeValue) = arg0.read(attr) map toAtomData
+    }
+  }
+
+  def ctaFormat(implicit arg0: DynamoFormat[CTAAtom]): DynamoFormat[AtomData] = {
+    def fromAtomData: PartialFunction[AtomData, CTAAtom] = { case AtomData.Cta(data) => data }
+    def toAtomData(data: CTAAtom): AtomData = AtomData.Cta(data)
+    def fallback(atomData: AtomData): AttributeValue =
+      new AttributeValue().withS(s"unknown atom data type $atomData")
+
+    new DynamoFormat[AtomData] {
+      def write(atomData: AtomData): AttributeValue = {
+        val pf = fromAtomData andThen { case data: CTAAtom => arg0.write(data) }
+        pf.applyOrElse(atomData, fallback)
+      }
+
+      def read(attr: AttributeValue) = arg0.read(attr) map toAtomData
+    }
+  }
+
+  val allFormats: List[DynamoFormat[AtomData]] = List(mediaFormat, ctaFormat)
+
+  implicit val dynamoFormat: DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
+    def write(t: AtomData) = t match {
+      case Media(_) => mediaFormat.write(t)
+      case Cta(_) => ctaFormat.write(t)
+    }
+
+    def read(av: AttributeValue): Either[DynamoReadError, AtomData] = {
+      allFormats.map(_.read(av)).collectFirst { case succ@Right(_) => succ }.getOrElse(Left(TypeCoercionError(new RuntimeException(s"No dynamo format to read $av"))))
+    }
+  }
 
   sealed trait DynamoResult
 
@@ -97,9 +159,9 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
 
 }
 
-abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]
+class PreviewDynamoDataStore
 (dynamo: AmazonDynamoDBClient, tableName: String)
-  extends DynamoDataStore[D](dynamo, tableName)
+  extends DynamoDataStore(dynamo, tableName)
   with PreviewDataStore {
 
   def updateAtom(newAtom: Atom) = {
@@ -112,9 +174,9 @@ abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]
 
 }
 
-abstract class PublishedDynamoDataStore[D : ClassTag : DynamoFormat]
+class PublishedDynamoDataStore
 (dynamo: AmazonDynamoDBClient, tableName: String)
-  extends DynamoDataStore[D](dynamo, tableName)
+  extends DynamoDataStore(dynamo, tableName)
   with PublishedDataStore {
 
   def updateAtom(newAtom: Atom) = {
