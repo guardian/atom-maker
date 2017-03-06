@@ -5,67 +5,18 @@ import cats.instances.list._
 import cats.syntax.either._
 import cats.syntax.traverse._
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemResult}
+import com.amazonaws.services.dynamodbv2.model.PutItemResult
 import com.amazonaws.{AmazonClientException, AmazonServiceException}
 import com.gu.atom.data.ScanamoUtil._
-import com.gu.contentatom.thrift.AtomData.{Cta, Media}
-import com.gu.contentatom.thrift.atom.cta.CTAAtom
-import com.gu.contentatom.thrift.atom.media.MediaAtom
-import com.gu.contentatom.thrift.{Atom, AtomData}
+import com.gu.contentatom.thrift.Atom
 import com.gu.scanamo.DynamoFormat._
-import com.gu.scanamo.error.{DynamoReadError, TypeCoercionError}
 import com.gu.scanamo.query._
 import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
-import com.gu.scanamo.{DynamoFormat, Scanamo, Table}
+import com.gu.scanamo.{Scanamo, Table}
 
 abstract class DynamoDataStore
   (dynamo: AmazonDynamoDBClient, tableName: String)
-    extends DataStore {
-
-  def mediaFormat(implicit arg0: DynamoFormat[MediaAtom]): DynamoFormat[AtomData] = {
-    def fromAtomData: PartialFunction[AtomData, MediaAtom] = { case AtomData.Media(data) => data }
-    def toAtomData(data: MediaAtom): AtomData = AtomData.Media(data)
-    def fallback(atomData: AtomData): AttributeValue =
-      new AttributeValue().withS(s"unknown atom data type $atomData")
-
-    new DynamoFormat[AtomData] {
-      def write(atomData: AtomData): AttributeValue = {
-        val pf = fromAtomData andThen { case data: MediaAtom => arg0.write(data) }
-        pf.applyOrElse(atomData, fallback)
-      }
-
-      def read(attr: AttributeValue) = arg0.read(attr) map toAtomData
-    }
-  }
-
-  def ctaFormat(implicit arg0: DynamoFormat[CTAAtom]): DynamoFormat[AtomData] = {
-    def fromAtomData: PartialFunction[AtomData, CTAAtom] = { case AtomData.Cta(data) => data }
-    def toAtomData(data: CTAAtom): AtomData = AtomData.Cta(data)
-    def fallback(atomData: AtomData): AttributeValue =
-      new AttributeValue().withS(s"unknown atom data type $atomData")
-
-    new DynamoFormat[AtomData] {
-      def write(atomData: AtomData): AttributeValue = {
-        val pf = fromAtomData andThen { case data: CTAAtom => arg0.write(data) }
-        pf.applyOrElse(atomData, fallback)
-      }
-
-      def read(attr: AttributeValue) = arg0.read(attr) map toAtomData
-    }
-  }
-
-  val allFormats: List[DynamoFormat[AtomData]] = List(mediaFormat, ctaFormat)
-
-  implicit val dynamoFormat: DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
-    def write(t: AtomData) = t match {
-      case Media(_) => mediaFormat.write(t)
-      case Cta(_) => ctaFormat.write(t)
-    }
-
-    def read(av: AttributeValue): Either[DynamoReadError, AtomData] = {
-      allFormats.map(_.read(av)).collectFirst { case succ@Right(_) => succ }.getOrElse(Left(TypeCoercionError(new RuntimeException(s"No dynamo format to read $av"))))
-    }
-  }
+    extends DataStore with AtomDynamoFormats {
 
   sealed trait DynamoResult
 
