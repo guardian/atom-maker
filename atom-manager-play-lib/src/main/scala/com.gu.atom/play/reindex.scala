@@ -1,25 +1,21 @@
 package com.gu.atom.play
 
-import akka.actor.{ActorRef, ActorSystem, Props, Actor}
+import java.util.Date
+import javax.inject.{Inject, Singleton}
+
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.pattern.ask
+import akka.util.Timeout
+import com.gu.atom.data._
+import com.gu.atom.play.ReindexActor._
 import com.gu.atom.publish._
 import com.gu.contentatom.thrift.{Atom, ContentAtomEvent, EventType}
 import play.api.Configuration
-
-import play.api.mvc._
-import javax.inject.Inject
-
-import com.gu.atom.data._
-
-import javax.inject.Singleton
-import akka.pattern.ask
-import akka.util.Timeout
-import scala.concurrent.duration._
-import java.util.Date
-import scala.concurrent.Future
-
 import play.api.libs.json._
+import play.api.mvc._
 
-import ReindexActor._
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 /*
  * In here we find the Actor that is responsible for initialising,

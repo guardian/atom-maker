@@ -1,31 +1,18 @@
 package com.gu.atom.play.test
 
-import scala.util.{Failure, Success}
 import com.gu.atom.TestData
-
-import scala.collection.mutable.{ Map => MMap }
-
-import com.google.inject.AbstractModule
-import javax.inject.Provider
-import com.gu.atom.publish.{LiveAtomPublisher, PreviewAtomPublisher}
-import play.api.Configuration
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.WSClient
-import com.gu.atom.publish.AtomPublisher
-import java.util.Date
-import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceableModule, GuiceableModuleConversions }
-
-import org.scalatestplus.play.PlaySpec
-
 import com.gu.atom.data._
-
-import play.api.inject.{ bind, Binding }
-import scala.reflect.ClassTag
-
-import org.mockito.Mockito._
+import com.gu.atom.publish.{LiveAtomPublisher, PreviewAtomPublisher}
 import org.mockito.ArgumentMatchers._
-
+import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar.mock
+import org.scalatestplus.play.PlaySpec
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule, GuiceableModuleConversions}
+import play.api.inject.{Binding, bind}
+
+import scala.collection.mutable.{Map => MMap}
+import scala.reflect.ClassTag
+import scala.util.{Failure, Success}
 
 trait AtomSuite extends PlaySpec with GuiceableModuleConversions {
 

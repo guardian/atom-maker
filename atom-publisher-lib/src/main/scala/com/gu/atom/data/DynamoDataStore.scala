@@ -1,42 +1,26 @@
 package com.gu.atom.data
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemResult}
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.gu.contentatom.thrift.AtomData.{Cta, Media}
-import com.gu.contentatom.thrift.atom.cta.CTAAtom
-import com.gu.contentatom.thrift.atom.media.MediaAtom
-import com.gu.contentatom.thrift.{Atom, AtomData}
-import com.gu.scanamo.error.{TypeCoercionError, DynamoReadError}
-import com.gu.scanamo.{DynamoFormat, Scanamo, Table}
-import com.gu.scanamo.query._
 import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.either._
 import cats.syntax.traverse._
-
-import scala.reflect.ClassTag
-import DynamoFormat._
-import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
-import ScanamoUtil._
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemResult}
 import com.amazonaws.{AmazonClientException, AmazonServiceException}
+import com.gu.atom.data.ScanamoUtil._
+import com.gu.contentatom.thrift.AtomData.{Cta, Media}
+import com.gu.contentatom.thrift.atom.cta.CTAAtom
+import com.gu.contentatom.thrift.atom.media.MediaAtom
+import com.gu.contentatom.thrift.{Atom, AtomData}
+import com.gu.scanamo.DynamoFormat._
+import com.gu.scanamo.error.{DynamoReadError, TypeCoercionError}
+import com.gu.scanamo.query._
+import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
+import com.gu.scanamo.{DynamoFormat, Scanamo, Table}
 
 abstract class DynamoDataStore
   (dynamo: AmazonDynamoDBClient, tableName: String)
     extends DataStore {
-
-//  implicit val atomDataFormat: DynamoFormat[AtomData] =  new DynamoFormat[AtomData] {
-//
-//    val mediaFormat: DynamoFormat[Media] = new DynamoFormat[Media] {
-//      private def fromAtomData: PartialFunction[AtomData, MediaAtom] = { case AtomData.Media(data) => data }
-//      private def toAtomData(data: MediaAtom): AtomData = AtomData.Media(data)
-//
-//      def write(atomData: Media): AttributeValue = {
-//        val pf = fromAtomData andThen { case data: Media => arg0.write(data) }
-//        pf.applyOrElse(atomData, fallback)
-//      }
-//
-//      def read(attr: AttributeValue): Either[DynamoReadError, AtomData] = read(attr).map(x => toAtomData(x.asInstanceOf[MediaAtom]))
-//    }
 
   def mediaFormat(implicit arg0: DynamoFormat[MediaAtom]): DynamoFormat[AtomData] = {
     def fromAtomData: PartialFunction[AtomData, MediaAtom] = { case AtomData.Media(data) => data }

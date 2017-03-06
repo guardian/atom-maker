@@ -1,7 +1,8 @@
 package com.gu.atom.publish
 
 import com.gu.contentatom.thrift.ContentAtomEvent
-import scala.concurrent.{ ExecutionContext, Future }
+
+import scala.concurrent.{ExecutionContext, Future}
 
 abstract class AtomReindexJob(atomEvents: Iterator[ContentAtomEvent], val expectedSize: Int) {
   protected var _isComplete: Boolean = false

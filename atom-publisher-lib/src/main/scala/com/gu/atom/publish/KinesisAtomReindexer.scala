@@ -2,7 +2,8 @@ package com.gu.atom.publish
 
 import com.amazonaws.services.kinesis.AmazonKinesisClient
 import com.gu.contentatom.thrift.ContentAtomEvent
-import scala.concurrent.{ Future, ExecutionContext }
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class KinesisAtomReindexer(
   streamName: String,
