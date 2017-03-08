@@ -53,7 +53,7 @@ class ReindexActor(reindexer: AtomReindexer) extends Actor {
 
 }
 
-/* the messages that we will send and recieve */
+/* the messages that we will send and receive */
 object ReindexActor {
   /* requests */
   case class CreateJob(atoms: Iterator[ContentAtomEvent], expectedSize: Int)
