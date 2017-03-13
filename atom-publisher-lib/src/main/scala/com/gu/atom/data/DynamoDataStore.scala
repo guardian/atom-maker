@@ -1,25 +1,22 @@
 package com.gu.atom.data
 
-import com.amazonaws.services.dynamodbv2.model.PutItemResult
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.gu.contentatom.thrift.{Atom, AtomData}
-import com.gu.scanamo.{DynamoFormat, Scanamo, Table}
-import com.gu.scanamo.query._
 import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.either._
 import cats.syntax.traverse._
-
-import scala.reflect.ClassTag
-import DynamoFormat._
-import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
-import ScanamoUtil._
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
+import com.amazonaws.services.dynamodbv2.model.PutItemResult
 import com.amazonaws.{AmazonClientException, AmazonServiceException}
+import com.gu.atom.data.ScanamoUtil._
+import com.gu.contentatom.thrift.Atom
+import com.gu.scanamo.DynamoFormat._
+import com.gu.scanamo.query._
+import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
+import com.gu.scanamo.{Scanamo, Table}
 
-abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
+abstract class DynamoDataStore
   (dynamo: AmazonDynamoDBClient, tableName: String)
-    extends DataStore
-    with AtomDynamoFormats[D] {
+    extends DataStore with AtomDynamoFormats {
 
   sealed trait DynamoResult
 
@@ -97,9 +94,9 @@ abstract class DynamoDataStore[D : ClassTag : DynamoFormat]
 
 }
 
-abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]
+class PreviewDynamoDataStore
 (dynamo: AmazonDynamoDBClient, tableName: String)
-  extends DynamoDataStore[D](dynamo, tableName)
+  extends DynamoDataStore(dynamo, tableName)
   with PreviewDataStore {
 
   def updateAtom(newAtom: Atom) = {
@@ -112,9 +109,9 @@ abstract class PreviewDynamoDataStore[D : ClassTag : DynamoFormat]
 
 }
 
-abstract class PublishedDynamoDataStore[D : ClassTag : DynamoFormat]
+class PublishedDynamoDataStore
 (dynamo: AmazonDynamoDBClient, tableName: String)
-  extends DynamoDataStore[D](dynamo, tableName)
+  extends DynamoDataStore(dynamo, tableName)
   with PublishedDataStore {
 
   def updateAtom(newAtom: Atom) = {

@@ -1,50 +1,104 @@
 package com.gu.atom.data
 
-//
-import com.gu.contentatom.thrift.atom.media.MediaAtom
-
-import scala.language.experimental.macros
-import scala.reflect.ClassTag
-import com.gu.contentatom.thrift.AtomData
-import com.twitter.scrooge.ThriftStruct
-import com.gu.scanamo.DynamoFormat
-import scala.reflect.macros.blackbox.Context
-import com.gu.scanamo.scrooge.ScroogeDynamoFormat
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
-
 import cats.syntax.either._
+import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.gu.contentatom.thrift.AtomData
+import com.gu.contentatom.thrift.AtomData._
+import com.gu.contentatom.thrift.atom.cta.CTAAtom
+import com.gu.contentatom.thrift.atom.explainer.ExplainerAtom
+import com.gu.contentatom.thrift.atom.interactive.InteractiveAtom
+import com.gu.contentatom.thrift.atom.media.MediaAtom
+import com.gu.contentatom.thrift.atom.quiz.QuizAtom
+import com.gu.contentatom.thrift.atom.recipe.RecipeAtom
+import com.gu.contentatom.thrift.atom.review.ReviewAtom
+import com.gu.contentatom.thrift.atom.storyquestions.StoryQuestionsAtom
+import com.gu.scanamo.DynamoFormat
+import com.gu.scanamo.error.{DynamoReadError, TypeCoercionError}
+import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
 
-import ScroogeDynamoFormat._
-import DynamoFormat._
-
-trait AtomDynamoFormats[A] {
-
-  def fromAtomData: PartialFunction[AtomData, A]
-  def toAtomData(a: A): AtomData
-
-  def fallback(atomData: AtomData): AttributeValue =
-    new AttributeValue().withS(s"unknown atom data type $atomData")
-
-  implicit def atomDataDynamoFormat(
-    implicit ct: ClassTag[A], arg0: DynamoFormat[A]
-  ) =
-    new DynamoFormat[AtomData] {
-      def write(atomData: AtomData): AttributeValue = {
-        val pf = fromAtomData andThen { case data: A => arg0.write(data) }
-        pf.applyOrElse(atomData, fallback)
-      }
-
-      def read(attr: AttributeValue) = arg0.read(attr) map toAtomData
+trait AtomDynamoFormats {
+  implicit val dynamoFormat: DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
+    def write(t: AtomData) = t match {
+      case Quiz(_) => quizFormat.write(t)
+      case Media(_) => mediaFormat.write(t)
+      case Explainer(_) => explainerFormat.write(t)
+      case Cta(_) => ctaFormat.write(t)
+      case Interactive(_) => interactiveFormat.write(t)
+      case Review(_) => reviewFormat.write(t)
+      case Recipe(_) => recipeFormat.write(t)
+      case Storyquestions(_) => storyquestionsFormat.write(t)
+      case UnknownUnionField(_) => throw new RuntimeException("Unknown atom data type found.")
     }
+    def read(av: AttributeValue): Either[DynamoReadError, AtomData] =
+      allFormats.map(_.read(av)).collectFirst { case success@Right(_) => success }
+        .getOrElse(Left(TypeCoercionError(new RuntimeException(s"No dynamo format to read $av"))))
+  }
+
+  private val allFormats: List[DynamoFormat[AtomData]] = List(quizFormat, mediaFormat, explainerFormat, ctaFormat, interactiveFormat, reviewFormat, recipeFormat, storyquestionsFormat)
+
+  private def fallback(atomData: AtomData): AttributeValue = new AttributeValue().withS(s"unknown atom data type $atomData")
+
+  private def quizFormat(implicit arg0: DynamoFormat[QuizAtom]): DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
+    def write(atomData: AtomData): AttributeValue = {
+      val pf: PartialFunction[AtomData, AttributeValue] = { case AtomData.Quiz(data) => arg0.write(data) }
+      pf.applyOrElse(atomData, fallback)
+    }
+    def read(attr: AttributeValue): Either[DynamoReadError, Quiz] = arg0.read(attr).map(AtomData.Quiz(_))
+  }
+
+  private def mediaFormat(implicit arg0: DynamoFormat[MediaAtom]): DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
+    def write(atomData: AtomData): AttributeValue = {
+      val pf: PartialFunction[AtomData, AttributeValue] = { case AtomData.Media(data) => arg0.write(data) }
+      pf.applyOrElse(atomData, fallback)
+    }
+    def read(attr: AttributeValue): Either[DynamoReadError, Media] = arg0.read(attr).map(AtomData.Media(_))
+  }
+
+  private def explainerFormat(implicit arg0: DynamoFormat[ExplainerAtom]): DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
+    def write(atomData: AtomData): AttributeValue = {
+      val pf: PartialFunction[AtomData, AttributeValue] = { case AtomData.Explainer(data) => arg0.write(data) }
+      pf.applyOrElse(atomData, fallback)
+    }
+    def read(attr: AttributeValue): Either[DynamoReadError, Explainer] = arg0.read(attr).map(AtomData.Explainer(_))
+  }
+
+  private def ctaFormat(implicit arg0: DynamoFormat[CTAAtom]): DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
+    def write(atomData: AtomData): AttributeValue = {
+      val pf: PartialFunction[AtomData, AttributeValue] = { case AtomData.Cta(data) => arg0.write(data) }
+      pf.applyOrElse(atomData, fallback)
+    }
+    def read(attr: AttributeValue): Either[DynamoReadError, Cta] = arg0.read(attr).map(AtomData.Cta(_))
+  }
+
+  private def interactiveFormat(implicit arg0: DynamoFormat[InteractiveAtom]): DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
+    def write(atomData: AtomData): AttributeValue = {
+      val pf: PartialFunction[AtomData, AttributeValue] = { case AtomData.Interactive(data) => arg0.write(data) }
+      pf.applyOrElse(atomData, fallback)
+    }
+    def read(attr: AttributeValue): Either[DynamoReadError, Interactive] = arg0.read(attr).map(AtomData.Interactive(_))
+  }
+
+  private def reviewFormat(implicit arg0: DynamoFormat[ReviewAtom]): DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
+    def write(atomData: AtomData): AttributeValue = {
+      val pf: PartialFunction[AtomData, AttributeValue] = { case AtomData.Review(data) => arg0.write(data) }
+      pf.applyOrElse(atomData, fallback)
+    }
+    def read(attr: AttributeValue): Either[DynamoReadError, Review] = arg0.read(attr).map(AtomData.Review(_))
+  }
+
+  private def recipeFormat(implicit arg0: DynamoFormat[RecipeAtom]): DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
+    def write(atomData: AtomData): AttributeValue = {
+      val pf: PartialFunction[AtomData, AttributeValue] = { case AtomData.Recipe(data) => arg0.write(data) }
+      pf.applyOrElse(atomData, fallback)
+    }
+    def read(attr: AttributeValue): Either[DynamoReadError, Recipe] = arg0.read(attr).map(AtomData.Recipe(_))
+  }
+
+  private def storyquestionsFormat(implicit arg0: DynamoFormat[StoryQuestionsAtom]): DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
+    def write(atomData: AtomData): AttributeValue = {
+      val pf: PartialFunction[AtomData, AttributeValue] = { case AtomData.Storyquestions(data) => arg0.write(data) }
+      pf.applyOrElse(atomData, fallback)
+    }
+    def read(attr: AttributeValue): Either[DynamoReadError, Storyquestions] = arg0.read(attr).map(AtomData.Storyquestions(_))
+  }
 }
-
-// ready-made implementations of the above types for different atom types
-
-trait MediaAtomDynamoFormats extends AtomDynamoFormats[MediaAtom] {
-
-  def fromAtomData = { case AtomData.Media(data) => data }
-  def toAtomData(data: MediaAtom) = AtomData.Media(data)
-
-}
-
-object MediaAtomDynamoFormats extends MediaAtomDynamoFormats

@@ -1,13 +1,11 @@
 package com.gu.atom.play.test
 
-import org.mockito.ArgumentMatchers._
-
 import com.gu.atom.play.ReindexController
+import com.gu.atom.publish._
+import org.mockito.ArgumentMatchers._
+import org.mockito.Mockito._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar.mock
-import com.gu.atom.publish._
 
 class ReindexSpec extends AtomSuite {
 

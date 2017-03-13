@@ -1,15 +1,15 @@
 package com.gu.atom.play
 
-import cats.syntax.either._
+import java.util.Date
+
 import com.gu.atom.data._
 import com.gu.atom.publish._
-import com.gu.contentatom.thrift._
-import java.util.Date
-import play.api.mvc._
-import scala.util.{ Failure, Success }
-import play.api.libs.json.{ JsObject, JsString }
-
 import com.gu.atom.util.AtomImplicitsGeneral._
+import com.gu.contentatom.thrift._
+import play.api.libs.json.{JsObject, JsString}
+import play.api.mvc._
+
+import scala.util.{Failure, Success}
 
 trait AtomAPIActions extends Controller {
 
@@ -30,7 +30,7 @@ trait AtomAPIActions extends Controller {
     previewDataStore.getAtom(atomId) match {
       case Right(atom) => {
         val updatedAtom = atom.copy(
-          contentChangeDetails = atom.contentChangeDetails.copy(published = Some(ChangeRecord((new Date()).getTime(), None)))
+          contentChangeDetails = atom.contentChangeDetails.copy(published = Some(ChangeRecord(new Date().getTime, None)))
         ).withRevision(revisionNumber)
 
         savePublishedAtom(updatedAtom)

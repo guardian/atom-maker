@@ -1,16 +1,17 @@
 package com.gu.atom.play.test
 
+import java.util.Date
+
 import com.gu.atom.TestData._
+import com.gu.atom.play._
 import com.gu.contentatom.thrift._
-import org.mockito.Mockito._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import com.gu.atom.play._
-import play.api.mvc.Controller
-import play.api.test.Helpers._
-import play.api.test.FakeRequest
+import org.mockito.Mockito._
 import org.scalatest.Inside
-import java.util.Date
+import play.api.mvc.Controller
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 
 class AtomAPIActionsSpec extends AtomSuite with Inside {
 
@@ -18,7 +19,7 @@ class AtomAPIActionsSpec extends AtomSuite with Inside {
 
   override def initialPublishedDataStore = {
     val m = publishedDataStoreMockWithTestData
-    when(m.updateAtom(any())).thenReturn(Right((testAtom)))
+    when(m.updateAtom(any())).thenReturn(Right(testAtom))
     m
   }
 
@@ -36,13 +37,13 @@ class AtomAPIActionsSpec extends AtomSuite with Inside {
     }
 
     "update publish time and version for atom" in AtomTestConf() { implicit conf =>
-      val startTime = (new Date()).getTime()
+      val startTime = new Date().getTime
       val atomCaptor = ArgumentCaptor.forClass(classOf[Atom])
       val result = call(apiActions.publishAtom("1"), FakeRequest())
       status(result) mustEqual NO_CONTENT
       verify(conf.publishedDataStore).updateAtom(atomCaptor.capture())
       
-      inside(atomCaptor.getValue()) {
+      inside(atomCaptor.getValue) {
         case Atom("1", _, _, _, _, changeDetails, _, _) => {
           changeDetails.published.value.date must be >= startTime
           changeDetails.revision mustEqual 2

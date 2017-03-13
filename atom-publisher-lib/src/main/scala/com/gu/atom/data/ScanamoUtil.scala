@@ -1,15 +1,8 @@
 package com.gu.atom.data
 
+import com.gu.scanamo.DynamoFormat
 import com.gu.scanamo.query._
 import com.gu.scanamo.request.RequestCondition
-
-import com.gu.scanamo.DynamoFormat
-import DynamoFormat.xmap
-
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
-import com.gu.contentatom.thrift.Flags
-
-import cats.syntax.either._
 
 /*
  * We are using `scanamo` and `scanamo-scrooge` in this library to

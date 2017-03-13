@@ -1,20 +1,10 @@
 package com.gu.atom.data
 
-import com.gu.contentatom.thrift.Atom
-import com.gu.contentatom.thrift.atom.media.MediaAtom
-import org.scalatest.{ fixture, Matchers, BeforeAndAfterAll, OptionValues }
-
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType._
-import com.amazonaws.services.dynamodbv2.model._
-import com.gu.scanamo.DynamoFormat._
-import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
-import ScanamoUtil._
-
-import com.gu.atom.util.AtomImplicitsGeneral
-
 import cats.syntax.either._
-
+import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType._
 import com.gu.atom.TestData._
+import com.gu.atom.util.AtomImplicitsGeneral
+import org.scalatest.{BeforeAndAfterAll, Matchers, OptionValues, fixture}
 
 class DynamoDataStoreSpec
     extends fixture.FunSpec
@@ -27,23 +17,29 @@ class DynamoDataStoreSpec
   val publishedTableName = "published-atom-test-table"
   val compositeKeyTableName = "composite-key-table"
 
-  case class DataStores(preview: PreviewDynamoDataStore[MediaAtom],
-                        published: PublishedDynamoDataStore[MediaAtom],
-                        compositeKey: PreviewDynamoDataStore[MediaAtom]
+  case class DataStores(preview: PreviewDynamoDataStore,
+                        published: PublishedDynamoDataStore,
+                        compositeKey: PreviewDynamoDataStore
                        )
 
   type FixtureParam = DataStores
 
   def withFixture(test: OneArgTest) = {
-    val previewDb = new PreviewDynamoDataStore[MediaAtom](LocalDynamoDB.client, tableName) with MediaAtomDynamoFormats
-    val compositeKeyDb = new PreviewDynamoDataStore[MediaAtom](LocalDynamoDB.client, compositeKeyTableName) with MediaAtomDynamoFormats
-    val publishedDb = new PublishedDynamoDataStore[MediaAtom](LocalDynamoDB.client, publishedTableName) with MediaAtomDynamoFormats
+    val previewDb = new PreviewDynamoDataStore(LocalDynamoDB.client, tableName)
+    val compositeKeyDb = new PreviewDynamoDataStore(LocalDynamoDB.client, compositeKeyTableName)
+    val publishedDb = new PublishedDynamoDataStore(LocalDynamoDB.client, publishedTableName)
     super.withFixture(test.toNoArgTest(DataStores(previewDb, publishedDb, compositeKeyDb)))
   }
 
   describe("DynamoDataStore") {
     it("should create a new atom") { dataStores =>
       dataStores.preview.createAtom(testAtom) should equal(Right(testAtom))
+    }
+
+    it("should list all atoms of all types") { dataStores =>
+      dataStores.preview.createAtom(testAtoms(1))
+      dataStores.preview.createAtom(testAtoms(2))
+      dataStores.preview.listAtoms.map(_.toList).fold(identity, res => res should contain theSameElementsAs testAtoms)
     }
 
     it("should return the atom") { dataStores =>

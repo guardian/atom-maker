@@ -1,8 +1,7 @@
 package com.gu.atom.publish
 
-import com.gu.contentatom.thrift.ContentAtomEvent
 import com.amazonaws.services.kinesis.AmazonKinesisClient
-
+import com.gu.contentatom.thrift.ContentAtomEvent
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.util.Try

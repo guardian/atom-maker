@@ -1,9 +1,7 @@
 package data
 
-import cats.syntax.either._
-import com.gu.contentatom.thrift.Atom
-
 import com.gu.atom.data._
+import com.gu.contentatom.thrift.Atom
 
 class MemoryStore extends DataStore {
 

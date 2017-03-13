@@ -1,25 +1,21 @@
 package com.gu.atom.play
 
-import akka.actor.{ActorRef, ActorSystem, Props, Actor}
+import java.util.Date
+import javax.inject.{Inject, Singleton}
+
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.pattern.ask
+import akka.util.Timeout
+import com.gu.atom.data._
+import com.gu.atom.play.ReindexActor._
 import com.gu.atom.publish._
 import com.gu.contentatom.thrift.{Atom, ContentAtomEvent, EventType}
 import play.api.Configuration
-
-import play.api.mvc._
-import javax.inject.Inject
-
-import com.gu.atom.data._
-
-import javax.inject.Singleton
-import akka.pattern.ask
-import akka.util.Timeout
-import scala.concurrent.duration._
-import java.util.Date
-import scala.concurrent.Future
-
 import play.api.libs.json._
+import play.api.mvc._
 
-import ReindexActor._
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 /*
  * In here we find the Actor that is responsible for initialising,
@@ -42,7 +38,7 @@ class ReindexActor(reindexer: AtomReindexer) extends Actor {
       sender ! RSuccess
 
     case GetStatus =>
-      sender ! lastJob.map(statusReply _)
+      sender ! lastJob.map(statusReply)
   }
 
   def inProgressState(job: AtomReindexJob): Receive = {
@@ -57,7 +53,7 @@ class ReindexActor(reindexer: AtomReindexer) extends Actor {
 
 }
 
-/* the messages that we will send and recieve */
+/* the messages that we will send and receive */
 object ReindexActor {
   /* requests */
   case class CreateJob(atoms: Iterator[ContentAtomEvent], expectedSize: Int)
@@ -98,7 +94,7 @@ class ReindexController @Inject() (
                                    config: Configuration,
                                    system: ActorSystem) extends Controller {
 
-  def now() = (new Date()).getTime()
+  def now() = new Date().getTime
 
   implicit val ec = system.dispatcher
 
@@ -113,7 +109,7 @@ class ReindexController @Inject() (
     lazy val apiKey = config.getString("reindexApiKey").get
 
     def invokeBlock[A](request: Request[A], block: (Request[A] => Future[Result])) = {
-      if(request.getQueryString("api").filter(_ == apiKey).isDefined)
+      if(request.getQueryString("api").contains(apiKey))
         block(request)
       else
         Future.successful(Unauthorized(""))
