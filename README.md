@@ -21,18 +21,12 @@ import com.gu.contentatom.thrift.atom.myAtom._
 
 class PublishedMyAtomDataStoreProvider @Inject() (myConfig: AWSConfig)
     extends Provider[PublishedDataStore] {
-        def get = new PublishedDynamoDataStore[MyAtom](myConfig.dynamoClient, myConfig.publishedDynamoTableName) {
-            def fromAtomData = { case AtomData.MyAtom(data) => data }
-            def toAtomData(data: MyAtom) = MyAtom.My(data)
-        }
+        def get = new PublishedDynamoDataStore(myConfig.dynamoClient, myConfig.publishedDynamoTableName)
 }
 
 class PreviewMyAtomDataStoreProvider @Inject() (awsConfig: AWSConfig)
     extends Provider[PreviewDataStore] {
-        def get = new PreviewDynamoDataStore[MyAtom](myConfig.dynamoClient, myConfig.dynamoTableName) {
-            def fromAtomData = { case AtomData.MyAtom(data) => data }
-            def toAtomData(data: MyAtom) = AtomData.MyAtom(data)
-        }
+        def get = new PreviewDynamoDataStore(myConfig.dynamoClient, myConfig.dynamoTableName)
 }
 ```
 
