@@ -1,4 +1,4 @@
-#Atom maker libraries
+# Atom maker libraries
 
 This repository contains two libraries for creating, publishing and managing content atoms.
 
@@ -7,10 +7,10 @@ For the atoms to appear in capi you will also have to make necessary changes to 
 
 An example of a project that uses these libraries to manage atoms can be found [here] (https://github.com/guardian/media-atom-maker).
 
-##Atom-publisher-lib ![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gu/atom-publisher-lib_2.11/badge.svg)
+## Atom-publisher-lib ![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gu/atom-publisher-lib_2.11/badge.svg)
 - Provides that traits you an inject in your application
 
-###PublishedStore and PreviewDataStore
+### PublishedStore and PreviewDataStore
 - Functionality for getting, creating, listing and updating atoms
 - You will need to provide these with a AmazonDynamoDBClient and the names of your published and preview
 dynamo tables, and your new content atom definition.
@@ -39,7 +39,7 @@ bind(classOf[PreviewDataStore])
 ```
 
 
-####Examples of use:
+#### Examples of use:
 
 Get a published atom
 ```
@@ -60,7 +60,7 @@ previewDataStore.createAtom(atom).fold(
 
 ```
 
-###LiveAtomPublisher and PreviewAtomPublisher
+### LiveAtomPublisher and PreviewAtomPublisher
 - Publishes content atoms to live or preview kinesis streams
 - You will need to provide these with a kinesis client and the names of live and preview kinesis streams
 you want to publish to and a kinesis client
@@ -89,7 +89,7 @@ bind(classOf[PreviewAtomPublisher])
 .toProvider(classOf[PreviewAtomPublisherProvider])
 ```
 
-####Examples of use
+#### Examples of use
 ```
 import com.gu.contentatom.thrift.{ContentAtomEvent, EventType, Atom}
 
@@ -103,7 +103,7 @@ previewPublisher.publishAtomEvent(event) match {
 ```
 
 
-###PreviewAtomReindexer and PublishedAtomReindexer
+### PreviewAtomReindexer and PublishedAtomReindexer
 - Used to reindex preview and live atoms
 - You will need to provide these with a kinesis client, and live and preview reindex kinesis stream name, which are usually
 the same as the live and preview kinesis streams.
@@ -133,11 +133,11 @@ bind(classOf[PreviewAtomReindexer])
 bind(classOf[PublishedAtomReindexer])
 .toProvider(classOf[PublishedAtomReindexerProvider])
 ```
-##Atom-manager-play-lib ![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gu/atom-manager-play_2.11/badge.svg)
+## Atom-manager-play-lib ![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gu/atom-manager-play_2.11/badge.svg)
 - Sits on top of `atom-publisher-lib`
 - Provides methods for publishing and reindexing atoms
 
-###Reindexing
+### Reindexing
 - You can use the reindex controller to create and view reindex jobs:
 
 ```
@@ -147,7 +147,7 @@ GET     /reindex-preview                com.gu.atom.play.ReindexController.previ
 GET     /reindex-publish                com.gu.atom.play.ReindexController.publishedReindexJobStatus()
 ```
 
-###Publishing
+### Publishing
 - Provides a method for publishing the atom is in the `AtomAPIActions` trait.
 - This method will publish your atom in your live kinesis stream and save it in your
 published atoms dynamo table.
