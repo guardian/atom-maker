@@ -18,6 +18,8 @@ startDynamoDBLocal <<= startDynamoDBLocal.dependsOn(compile in Test)
 test in Test <<= (test in Test).dependsOn(startDynamoDBLocal)
 testOptions in Test <+= dynamoDBLocalTestCleanup
 
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+
 libraryDependencies ++= Seq(
   "com.gu"                     %% "content-atom-model"   % contentAtomVersion,
   "com.amazonaws"              %  "aws-java-sdk-kinesis" % awsVersion,
@@ -28,5 +30,6 @@ libraryDependencies ++= Seq(
   "org.mockito"                %  "mockito-core"         % mockitoVersion % "test",
   "org.scalatest"              %% "scalatest"            % "2.2.6" % "test",
   "com.typesafe.akka"          %% "akka-testkit"         % akkaVersion % "test",
-  "org.typelevel"              %% "cats-core"            % "0.9.0"
+  "org.typelevel"              %% "cats-core"            % "0.9.0",
+  "com.github.mpilquist"       %% "simulacrum"           % "0.10.0"
 ) ++  scanamoDeps
