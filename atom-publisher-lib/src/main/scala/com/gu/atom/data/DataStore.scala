@@ -1,6 +1,7 @@
 package com.gu.atom.data
 
-import com.gu.contentatom.thrift.Atom
+import com.gu.contentatom.thrift.{Atom, ContentChangeDetails}
+import simulacrum.typeclass
 
 sealed abstract class DataStoreError(val msg: String) extends Exception(msg)
 
@@ -13,26 +14,48 @@ case class  VersionConflictError(requestVer: Long) extends DataStoreError(s"Upda
 case class  DynamoError(info: String) extends DataStoreError(s"Dynamo was unable to process this request. Error message $info")
 case class  ClientError(info: String) extends DataStoreError(s"Client was unable to get a response from a service, or if the client was unable to parse the response from a service. Error message: $info")
 
-trait DataStore extends DataStoreResult {
+case class Draft(id: String, contentChangeDetails: ContentChangeDetails)
 
-  def getAtom(id: String): DataStoreResult[Atom]
+trait DataStore[A] extends DataStoreResult {
 
-  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom]
+  def getAtom(id: String): DataStoreResult[A]
 
-  def createAtom(atom: Atom): DataStoreResult[Atom]
+  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[A]
 
-  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom]
+  def createAtom(atom: A): DataStoreResult[A]
 
-  def listAtoms: DataStoreResult[Iterator[Atom]]
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: A): DataStoreResult[A]
+
+  def listAtoms: DataStoreResult[Iterator[A]]
 
   /* this will only allow the update if the version in atom is later
  * than the version stored in the database, otherwise it will report
  * it as a version conflict error */
-  def updateAtom(newAtom: Atom): DataStoreResult[Atom]
+  def updateAtom(newAtom: A): DataStoreResult[A]
 
-  def deleteAtom(id: String): DataStoreResult[Atom]
+  def deleteAtom(id: String): DataStoreResult[A]
 
-  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom]
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[A]
+}
+
+object DataStore {
+  @typeclass
+  trait AtomSkeleton[T] {
+    def getId(t: T): String
+    def getContentChangeDetails(t: T): ContentChangeDetails
+  }
+
+  implicit val CompleteAtom: AtomSkeleton[Atom] = new AtomSkeleton[Atom] {
+    override def getId(t: Atom) = t.id
+
+    override def getContentChangeDetails(t: Atom): ContentChangeDetails = t.contentChangeDetails
+  }
+
+  implicit val DraftAtom: AtomSkeleton[Draft] = new AtomSkeleton[Draft] {
+    override def getId(t: Draft) = t.id
+
+    override def getContentChangeDetails(t: Draft): ContentChangeDetails = t.contentChangeDetails
+  }
 }
 
 trait DataStoreResult {
@@ -44,8 +67,8 @@ trait DataStoreResult {
 
 object DataStoreResult extends DataStoreResult
 
-trait PreviewDataStore extends DataStore
+trait PreviewDataStore[A] extends DataStore[A]
 
-trait PublishedDataStore extends DataStore
+trait PublishedDataStore[A] extends DataStore[A]
 
 case class DynamoCompositeKey(partitionKey: String, sortKey: Option[String] = None)

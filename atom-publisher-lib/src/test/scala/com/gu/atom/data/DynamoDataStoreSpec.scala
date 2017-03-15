@@ -5,6 +5,11 @@ import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType._
 import com.gu.atom.TestData._
 import com.gu.atom.util.AtomImplicitsGeneral
 import org.scalatest.{BeforeAndAfterAll, Matchers, OptionValues, fixture}
+import com.gu.atom.data.DataStore._
+import com.gu.contentatom.thrift.Atom
+import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
+import com.gu.scanamo.DynamoFormat._
+import com.gu.atom.data.AtomDynamoFormats._
 
 class DynamoDataStoreSpec
     extends fixture.FunSpec
@@ -17,17 +22,17 @@ class DynamoDataStoreSpec
   val publishedTableName = "published-atom-test-table"
   val compositeKeyTableName = "composite-key-table"
 
-  case class DataStores(preview: PreviewDynamoDataStore,
-                        published: PublishedDynamoDataStore,
-                        compositeKey: PreviewDynamoDataStore
+  case class DataStores(preview: PreviewDynamoDataStore[Atom],
+                        published: PublishedDynamoDataStore[Atom],
+                        compositeKey: PreviewDynamoDataStore[Atom]
                        )
 
   type FixtureParam = DataStores
 
   def withFixture(test: OneArgTest) = {
-    val previewDb = new PreviewDynamoDataStore(LocalDynamoDB.client, tableName)
-    val compositeKeyDb = new PreviewDynamoDataStore(LocalDynamoDB.client, compositeKeyTableName)
-    val publishedDb = new PublishedDynamoDataStore(LocalDynamoDB.client, publishedTableName)
+    val previewDb = new PreviewDynamoDataStore[Atom](LocalDynamoDB.client, tableName)
+    val compositeKeyDb = new PreviewDynamoDataStore[Atom](LocalDynamoDB.client, compositeKeyTableName)
+    val publishedDb = new PublishedDynamoDataStore[Atom](LocalDynamoDB.client, publishedTableName)
     super.withFixture(test.toNoArgTest(DataStores(previewDb, publishedDb, compositeKeyDb)))
   }
 
