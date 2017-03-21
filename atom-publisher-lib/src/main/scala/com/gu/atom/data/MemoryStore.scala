@@ -64,3 +64,4 @@ abstract class MemoryStore() extends DataStore {
 
 class PreviewMemoryStore()(implicit override val atomSkeleton: AtomSkeleton[Atom]) extends MemoryStore() with PreviewDataStore
 class PublishedMemoryStore()(implicit override val atomSkeleton: AtomSkeleton[Atom]) extends MemoryStore() with PublishedDataStore
+class DraftDynamoMemoryStore()(implicit override val atomSkeleton: AtomSkeleton[Draft]) extends MemoryStore() with DraftDataStore

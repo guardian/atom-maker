@@ -125,8 +125,19 @@ class PublishedDynamoDataStore
   extends DynamoDataStore(dynamo, tableName)
   with PublishedDataStore {
 
-  def updateAtom(newAtom: DataType) = {
+  def updateAtom(newAtom: Atom) = {
     Scanamo.exec(dynamo)(Table[Atom](tableName).put(newAtom))
+    succeed(newAtom)
+  }
+}
+
+class DraftDynamoDataStore
+(dynamo: AmazonDynamoDBClient, tableName: String)(implicit val atomSkeleton: AtomSkeleton[Draft], val dynamoFormat: DynamoFormat[Draft])
+  extends DynamoDataStore(dynamo, tableName)
+    with DraftDataStore {
+
+  def updateAtom(newAtom: Draft): DataStoreResult[Draft] = {
+    Scanamo.exec(dynamo)(Table[Draft](tableName).put(newAtom))
     succeed(newAtom)
   }
 }
