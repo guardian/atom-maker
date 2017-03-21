@@ -16,26 +16,28 @@ case class  ClientError(info: String) extends DataStoreError(s"Client was unable
 
 case class Draft(id: String, contentChangeDetails: ContentChangeDetails)
 
-trait DataStore[A] extends DataStoreResult {
+trait DataStore extends DataStoreResult {
 
-  def getAtom(id: String): DataStoreResult[A]
+  type DataType
 
-  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[A]
+  def getAtom(id: String): DataStoreResult[DataType]
 
-  def createAtom(atom: A): DataStoreResult[A]
+  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[DataType]
 
-  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: A): DataStoreResult[A]
+  def createAtom(atom: DataType): DataStoreResult[DataType]
 
-  def listAtoms: DataStoreResult[Iterator[A]]
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: DataType): DataStoreResult[DataType]
+
+  def listAtoms: DataStoreResult[Iterator[DataType]]
 
   /* this will only allow the update if the version in atom is later
  * than the version stored in the database, otherwise it will report
  * it as a version conflict error */
-  def updateAtom(newAtom: A): DataStoreResult[A]
+  def updateAtom(newAtom: DataType): DataStoreResult[DataType]
 
-  def deleteAtom(id: String): DataStoreResult[A]
+  def deleteAtom(id: String): DataStoreResult[DataType]
 
-  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[A]
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[DataType]
 }
 
 object DataStore {
@@ -67,8 +69,16 @@ trait DataStoreResult {
 
 object DataStoreResult extends DataStoreResult
 
-trait PreviewDataStore[A] extends DataStore[A]
+trait PreviewDataStore extends DataStore {
+  type DataType = Atom
+}
 
-trait PublishedDataStore[A] extends DataStore[A]
+trait PublishedDataStore extends DataStore {
+  type DataType = Atom
+}
+
+trait DraftDataStore extends DataStore {
+  type DataType = Draft
+}
 
 case class DynamoCompositeKey(partitionKey: String, sortKey: Option[String] = None)

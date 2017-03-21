@@ -22,17 +22,17 @@ class DynamoDataStoreSpec
   val publishedTableName = "published-atom-test-table"
   val compositeKeyTableName = "composite-key-table"
 
-  case class DataStores(preview: PreviewDynamoDataStore[Atom],
-                        published: PublishedDynamoDataStore[Atom],
-                        compositeKey: PreviewDynamoDataStore[Atom]
+  case class DataStores(preview: PreviewDynamoDataStore,
+                        published: PublishedDynamoDataStore,
+                        compositeKey: PreviewDynamoDataStore
                        )
 
   type FixtureParam = DataStores
 
   def withFixture(test: OneArgTest) = {
-    val previewDb = new PreviewDynamoDataStore[Atom](LocalDynamoDB.client, tableName)
-    val compositeKeyDb = new PreviewDynamoDataStore[Atom](LocalDynamoDB.client, compositeKeyTableName)
-    val publishedDb = new PublishedDynamoDataStore[Atom](LocalDynamoDB.client, publishedTableName)
+    val previewDb = new PreviewDynamoDataStore(LocalDynamoDB.client, tableName)
+    val compositeKeyDb = new PreviewDynamoDataStore(LocalDynamoDB.client, compositeKeyTableName)
+    val publishedDb = new PublishedDynamoDataStore(LocalDynamoDB.client, publishedTableName)
     super.withFixture(test.toNoArgTest(DataStores(previewDb, publishedDb, compositeKeyDb)))
   }
 
