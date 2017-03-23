@@ -31,5 +31,9 @@ libraryDependencies ++= Seq(
   "org.scalatest"              %% "scalatest"            % "2.2.6" % "test",
   "com.typesafe.akka"          %% "akka-testkit"         % akkaVersion % "test",
   "org.typelevel"              %% "cats-core"            % "0.9.0",
-  "com.github.mpilquist"       %% "simulacrum"           % "0.10.0"
+  "com.github.mpilquist"       %% "simulacrum"           % "0.10.0",
+  "com.gu"                     % "content-atom-model-thrift" % "2.4.34"
 ) ++  scanamoDeps
+
+thriftTransformThriftFiles := Seq(file("contentatom.thrift"))
+thriftTransformChangeNamespace := { (orig: String) => orig.replaceFirst("content", "draftcontent")}
