@@ -13,6 +13,7 @@ import com.gu.contentatom.thrift.Atom
 import com.gu.scanamo.DynamoFormat._
 import com.gu.scanamo.query._
 import com.gu.scanamo.{DynamoFormat, Scanamo, Table}
+import com.gu.draftcontentatom.thrift.{Atom => Draft}
 
 abstract class DynamoDataStore
   (dynamo: AmazonDynamoDBClient, tableName: String)

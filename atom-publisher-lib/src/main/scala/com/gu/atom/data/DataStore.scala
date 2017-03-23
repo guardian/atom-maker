@@ -1,7 +1,8 @@
 package com.gu.atom.data
 
-import com.gu.contentatom.thrift.{Atom, ContentChangeDetails}
+import com.gu.contentatom.thrift.{Atom, ChangeRecord, ContentChangeDetails, User}
 import simulacrum.typeclass
+import com.gu.draftcontentatom.thrift.{Atom => Draft, ChangeRecord => DraftChangeRecord, ContentChangeDetails => DraftContentChangeDetails}
 
 sealed abstract class DataStoreError(val msg: String) extends Exception(msg)
 
@@ -13,8 +14,6 @@ case class  DataError(info: String) extends DataStoreError(info)
 case class  VersionConflictError(requestVer: Long) extends DataStoreError(s"Update has version $requestVer, which is earlier or equal to data store version")
 case class  DynamoError(info: String) extends DataStoreError(s"Dynamo was unable to process this request. Error message $info")
 case class  ClientError(info: String) extends DataStoreError(s"Client was unable to get a response from a service, or if the client was unable to parse the response from a service. Error message: $info")
-
-case class Draft(id: String, contentChangeDetails: ContentChangeDetails)
 
 trait DataStore extends DataStoreResult {
 
@@ -54,9 +53,22 @@ object DataStore {
   }
 
   implicit val DraftAtom: AtomSkeleton[Draft] = new AtomSkeleton[Draft] {
-    override def getId(t: Draft) = t.id
+    override def getId(t: Draft) = t.id.get
 
-    override def getContentChangeDetails(t: Draft): ContentChangeDetails = t.contentChangeDetails
+    override def getContentChangeDetails(t: Draft): ContentChangeDetails = {
+      val draftContentChangeDetails: DraftContentChangeDetails = t.contentChangeDetails.get
+      ContentChangeDetails(
+        revision = draftContentChangeDetails.revision.get,
+        created = Some(convertDraftChangeRecordToChangeRecord(t.contentChangeDetails.get.created.get)),
+        lastModified = Some(convertDraftChangeRecordToChangeRecord(t.contentChangeDetails.get.lastModified.get)),
+        published = None,
+        takenDown = None
+      )
+    }
+
+    private def convertDraftChangeRecordToChangeRecord(record: DraftChangeRecord): ChangeRecord = {
+      ChangeRecord(date = record.date.get, user = Some(User(email = record.user.get.email.get , firstName = record.user.get.firstName, lastName = record.user.get.lastName)))
+    }
   }
 }
 

@@ -3,6 +3,7 @@ package data
 import com.gu.atom.data.DataStore.AtomSkeleton
 import com.gu.atom.data._
 import com.gu.contentatom.thrift.Atom
+import com.gu.draftcontentatom.thrift.{Atom => Draft}
 
 abstract class MemoryStore() extends DataStore {
 
