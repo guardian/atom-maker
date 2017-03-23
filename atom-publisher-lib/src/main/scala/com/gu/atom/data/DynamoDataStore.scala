@@ -126,7 +126,7 @@ class PublishedDynamoDataStore
   extends DynamoDataStore(dynamo, tableName)
   with PublishedDataStore {
 
-  def updateAtom(newAtom: Atom) = {
+  def updateAtom(newAtom: DataType) = {
     Scanamo.exec(dynamo)(Table[Atom](tableName).put(newAtom))
     succeed(newAtom)
   }

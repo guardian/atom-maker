@@ -48,7 +48,6 @@ object DataStore {
 
   implicit val CompleteAtom: AtomSkeleton[Atom] = new AtomSkeleton[Atom] {
     override def getId(t: Atom) = t.id
-
     override def getContentChangeDetails(t: Atom): ContentChangeDetails = t.contentChangeDetails
   }
 
