@@ -116,8 +116,8 @@ class ReindexController @Inject() (
     }
   }
 
-  def newPreviewReindexJob = getNewReindexJob(previewDataStore.listAtoms(limit = None), previewReindexActor)
-  def newPublishedReindexJob = getNewReindexJob(publishedDataStore.listAtoms(limit = None), publishedReindexActor)
+  def newPreviewReindexJob = getNewReindexJob(previewDataStore.listAtoms(), previewReindexActor)
+  def newPublishedReindexJob = getNewReindexJob(publishedDataStore.listAtoms(), publishedReindexActor)
 
   def previewReindexJobStatus = getReindexJobStatus(previewReindexActor)
   def publishedReindexJobStatus = getReindexJobStatus(publishedReindexActor)

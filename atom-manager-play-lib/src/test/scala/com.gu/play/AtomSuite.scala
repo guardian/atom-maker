@@ -21,14 +21,14 @@ trait AtomSuite extends PlaySpec with GuiceableModuleConversions {
   def previewDataStoreMockWithTestData = {
     val m = mock[PreviewDataStore]
     when(m.getAtom(any(): String)).thenReturn(Right(TestData.testAtoms.head))
-    when(m.listAtoms).thenReturn(DataStoreResult.succeed(TestData.testAtoms.iterator))
+    when(m.listAtoms()).thenReturn(DataStoreResult.succeed(TestData.testAtoms.iterator))
     m
   }
 
   def publishedDataStoreMockWithTestData = {
     val m = mock[PublishedDataStore]
     when(m.getAtom(any(): String)).thenReturn(Right(TestData.testAtoms.head))
-    when(m.listAtoms).thenReturn(DataStoreResult.succeed(TestData.testAtoms.iterator))
+    when(m.listAtoms()).thenReturn(DataStoreResult.succeed(TestData.testAtoms.iterator))
     m
   }
 
