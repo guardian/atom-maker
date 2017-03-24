@@ -23,7 +23,7 @@ trait DataStore extends DataStoreResult {
 
   def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom]
 
-  def listAtoms: DataStoreResult[Iterator[Atom]]
+  def listAtoms(limit: Option[Int]): DataStoreResult[Iterator[Atom]]
 
   /* this will only allow the update if the version in atom is later
  * than the version stored in the database, otherwise it will report

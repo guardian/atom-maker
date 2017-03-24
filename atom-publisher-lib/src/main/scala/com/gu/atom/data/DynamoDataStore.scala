@@ -85,13 +85,20 @@ abstract class DynamoDataStore
         fail(error)
     }
 
-  private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
+  private def getAllAtoms(tableName: String): DataStoreResult[List[Atom]] =
     Scanamo.scan[Atom](dynamo)(tableName).sequenceU.leftMap {
       _ => ReadError
     }
 
-  def listAtoms: DataStoreResult[Iterator[Atom]] = findAtoms(tableName).map(_.iterator)
+  private def getSomeAtoms(tableName: String, limit: Int): DataStoreResult[List[Atom]] =
+    Scanamo.scanWithLimit[Atom](dynamo)(tableName, limit).sequenceU.leftMap {
+      _ => ReadError
+    }
 
+  def listAtoms(limit: Option[Int]): DataStoreResult[Iterator[Atom]] = limit match {
+    case Some(max) => getSomeAtoms(tableName, max).map(_.iterator)
+    case None => getAllAtoms(tableName).map(_.iterator)
+  }
 }
 
 class PreviewDynamoDataStore
