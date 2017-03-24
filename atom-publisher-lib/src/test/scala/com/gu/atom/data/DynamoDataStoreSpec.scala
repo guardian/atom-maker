@@ -39,7 +39,19 @@ class DynamoDataStoreSpec
     it("should list all atoms of all types") { dataStores =>
       dataStores.preview.createAtom(testAtoms(1))
       dataStores.preview.createAtom(testAtoms(2))
-      dataStores.preview.listAtoms.map(_.toList).fold(identity, res => res should contain theSameElementsAs testAtoms)
+
+      dataStores.preview.listAtoms().foreach { atoms =>
+        atoms.toList should contain theSameElementsAs testAtoms
+      }
+    }
+
+    it("should list some atoms of all types") { dataStores =>
+      dataStores.preview.createAtom(testAtoms(1))
+      dataStores.preview.createAtom(testAtoms(2))
+
+      dataStores.preview.listAtoms(limit = Some(1)).foreach { atoms =>
+        atoms should have size 1
+      }
     }
 
     it("should return the atom") { dataStores =>

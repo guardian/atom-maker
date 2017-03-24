@@ -44,7 +44,13 @@ class MemoryStore extends DataStore {
     }
   }
 
-  def listAtoms = Right(dataStore.values.iterator)
+  def listAtoms(limit: Option[Int]) = limit match {
+    case Some(max) =>
+      Right(dataStore.values.take(max).iterator)
+
+    case None =>
+      Right(dataStore.values.iterator)
+  }
 
   def deleteAtom(id: String): DataStoreResult[Atom] = deleteAtom(DynamoCompositeKey(id))
 
