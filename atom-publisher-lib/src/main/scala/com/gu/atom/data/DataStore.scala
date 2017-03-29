@@ -1,8 +1,8 @@
 package com.gu.atom.data
 
-import com.gu.contentatom.thrift.{Atom, ChangeRecord, ContentChangeDetails, User}
+import com.gu.contentatom.thrift.{Atom, ContentChangeDetails}
 import simulacrum.typeclass
-import com.gu.draftcontentatom.thrift.{Atom => Draft, ChangeRecord => DraftChangeRecord, ContentChangeDetails => DraftContentChangeDetails}
+import com.gu.draftcontentatom.thrift.{Atom => Draft}
 
 sealed abstract class DataStoreError(val msg: String) extends Exception(msg)
 
@@ -42,31 +42,25 @@ trait DataStore extends DataStoreResult {
 object DataStore {
   @typeclass
   trait AtomSkeleton[T] {
-    def getId(t: T): String
-    def getContentChangeDetails(t: T): ContentChangeDetails
+    def getId(atom: T): String
+    def getContentChangeDetails(atom: T): ContentChangeDetails
   }
 
   implicit val CompleteAtom: AtomSkeleton[Atom] = new AtomSkeleton[Atom] {
-    override def getId(t: Atom) = t.id
-    override def getContentChangeDetails(t: Atom): ContentChangeDetails = t.contentChangeDetails
+    override def getId(atom: Atom) = atom.id
+    override def getContentChangeDetails(atom: Atom): ContentChangeDetails = atom.contentChangeDetails
   }
 
   implicit val DraftAtom: AtomSkeleton[Draft] = new AtomSkeleton[Draft] {
-    override def getId(t: Draft) = t.id.get
+    override def getId(atom: Draft) = atom.id.get
 
-    override def getContentChangeDetails(t: Draft): ContentChangeDetails = {
-      val draftContentChangeDetails: DraftContentChangeDetails = t.contentChangeDetails.get
-      ContentChangeDetails(
-        revision = draftContentChangeDetails.revision.get,
-        created = Some(convertDraftChangeRecordToChangeRecord(t.contentChangeDetails.get.created.get)),
-        lastModified = Some(convertDraftChangeRecordToChangeRecord(t.contentChangeDetails.get.lastModified.get)),
-        published = None,
-        takenDown = None
-      )
-    }
+    override def getContentChangeDetails(atom: Draft): ContentChangeDetails = {
+      val contentChangeDetails = for {
+        draftContentChangeDetails <- atom.contentChangeDetails
+        revision <- draftContentChangeDetails.revision
+      } yield ContentChangeDetails(revision = revision)
 
-    private def convertDraftChangeRecordToChangeRecord(record: DraftChangeRecord): ChangeRecord = {
-      ChangeRecord(date = record.date.get, user = Some(User(email = record.user.get.email.get , firstName = record.user.get.firstName, lastName = record.user.get.lastName)))
+      contentChangeDetails.getOrElse(ContentChangeDetails(revision = 1))
     }
   }
 }
