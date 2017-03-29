@@ -107,8 +107,6 @@ class PreviewDynamoDataStore
   with PreviewDataStore {
 
   def updateAtom(newAtom: Atom): DataStoreResult[Atom] = {
-    Left(VersionConflictError(3))
-
     val revision = newAtom.contentChangeDetails.revision
     val validationCheck = {
       NestedKeyIs(
