@@ -16,4 +16,4 @@ addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "1.1")
 
 addSbtPlugin("com.localytics" % "sbt-dynamodb" % "1.5.3")
 
-addSbtPlugin("com.gu" % "thrift-transformer-sbt" % "1.0.0")
+addSbtPlugin("com.gu" % "thrift-transformer-sbt" % "1.0.1")
