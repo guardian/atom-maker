@@ -41,7 +41,7 @@ trait DataStore extends DataStoreResult {
 
 object DataStore {
   @typeclass
-  trait AtomSkeleton[T] {
+  sealed trait AtomSkeleton[T] {
     def getId(atom: T): String
     def getContentChangeDetails(atom: T): ContentChangeDetails
   }
