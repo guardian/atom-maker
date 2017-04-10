@@ -21,17 +21,17 @@ testOptions in Test <+= dynamoDBLocalTestCleanup
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 
 libraryDependencies ++= Seq(
-  "com.gu"                     %% "content-atom-model"   % contentAtomVersion,
-  "com.amazonaws"              %  "aws-java-sdk-kinesis" % awsVersion,
-  "com.typesafe.scala-logging" %% "scala-logging"        % "3.4.0",
-  "com.twitter"                %% "scrooge-serializer"   % scroogeVersion,
-  "com.twitter"                %% "scrooge-core"         % scroogeVersion,
-  "com.typesafe.akka"          %% "akka-actor"           % akkaVersion,
-  "org.mockito"                %  "mockito-core"         % mockitoVersion % "test",
-  "org.scalatest"              %% "scalatest"            % "2.2.6" % "test",
-  "com.typesafe.akka"          %% "akka-testkit"         % akkaVersion % "test",
-  "org.typelevel"              %% "cats-core"            % "0.9.0",
-  "com.github.mpilquist"       %% "simulacrum"           % "0.10.0",
+  "com.gu"                     %% "content-atom-model"       % contentAtomVersion,
+  "com.amazonaws"              %  "aws-java-sdk-kinesis"     % awsVersion,
+  "com.typesafe.scala-logging" %% "scala-logging"            % "3.4.0",
+  "com.twitter"                %% "scrooge-serializer"       % scroogeVersion,
+  "com.twitter"                %% "scrooge-core"             % scroogeVersion,
+  "com.typesafe.akka"          %% "akka-actor"               % akkaVersion,
+  "org.mockito"                %  "mockito-core"             % mockitoVersion % "test",
+  "org.scalatest"              %% "scalatest"                % "2.2.6" % "test",
+  "com.typesafe.akka"          %% "akka-testkit"             % akkaVersion % "test",
+  "org.typelevel"              %% "cats-core"                % "0.9.0",
+  "com.github.mpilquist"       %% "simulacrum"               % "0.10.0",
   "com.gu"                     % "content-atom-model-thrift" % "2.4.34"
 ) ++  scanamoDeps
 
