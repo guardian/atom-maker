@@ -15,7 +15,7 @@ be published or reindexed. Implementing a draft data store in your project is op
 definition](https://github.com/guardian/content-atom) using the [Scrooge code gen sbt plugin](https://github.com/guardian/scrooge-code-gen-sbt-plugin).
 
 ## Atom-publisher-lib ![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gu/atom-publisher-lib_2.11/badge.svg)
-- Provides traits to inject into your application
+- Provides traits to include in your application
 
 ### PublishedStore, PreviewDataStore and DraftDataStore
 - It is only necessary to implement DraftDataStore if you want to save incomplete atoms.
@@ -44,7 +44,7 @@ import config.Config
 object DataStores {
 val publishedDataStore = new PublishedDynamoDataStore(Config.dynamoClient, Config.publishedDynamoTableName)
 val previewDataStore = new PreviewDynamoDataStore(Config.dynamoClient, Config.dynamoTableName)
-val draftDataStore = new DraftDynamoDataStore(Config.dynamoDB, Config.draftDynamoTableName)
+val draftDataStore = new DraftDynamoDataStore(Config.dynamoClient, Config.draftDynamoTableName)
 }
 ```
 
