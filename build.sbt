@@ -23,6 +23,7 @@ lazy val atomPublisher = (project in file("./atom-publisher-lib"))
 
 
 lazy val atomManagerPlay = (project in file("./atom-manager-play-lib"))
+  .disablePlugins(ThriftTransformerSBT)
   .settings(baseSettings: _*)
   .settings(
     organization := "com.gu",
@@ -32,6 +33,7 @@ lazy val atomManagerPlay = (project in file("./atom-manager-play-lib"))
   .dependsOn(atomPublisher % "test->test;compile->compile")
 
 lazy val atomLibraries = (project in file("."))
+  .disablePlugins(ThriftTransformerSBT)
   .aggregate(atomPublisher, atomManagerPlay)
   .settings(baseSettings: _*).settings(
   publishArtifact := false,
