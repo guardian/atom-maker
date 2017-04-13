@@ -1,31 +1,27 @@
 package data
 
-import com.gu.atom.data.DataStore.AtomSkeleton
 import com.gu.atom.data._
 import com.gu.contentatom.thrift.Atom
-import com.gu.draftcontentatom.thrift.{Atom => Draft}
 
-abstract class MemoryStore extends DataStore {
+class MemoryStore extends DataStore {
 
-  val atomSkeleton: AtomSkeleton[DataType]
+  def this(initial: Map[DynamoCompositeKey, Atom] = Map.empty) = {
+    this()
+    dataStore ++= initial
+  }
 
-  def addAll(items: Map[DynamoCompositeKey, DataType]) = dataStore ++= items
+  private val dataStore = collection.mutable.Map[DynamoCompositeKey, Atom]()
 
-  private val dataStore = collection.mutable.Map[DynamoCompositeKey, DataType]()
+  def getAtom(id: String): DataStoreResult[Atom] = getAtom(DynamoCompositeKey(id))
 
-  def getAtom(id: String): DataStoreResult[DataType] = getAtom(DynamoCompositeKey(id))
-
-  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[DataType] = dataStore.get(dynamoCompositeKey) match {
+  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] = dataStore.get(dynamoCompositeKey) match {
     case Some(atom) => succeed(atom)
     case None => fail(IDNotFound)
   }
 
-  def createAtom(atom: DataType): DataStoreResult[DataType] = {
-    val id = atomSkeleton.getId(atom)
-    createAtom(DynamoCompositeKey(id), atom)
-  }
+  def createAtom(atom: Atom): DataStoreResult[Atom] = createAtom(DynamoCompositeKey(atom.id), atom)
 
-  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: DataType): DataStoreResult[DataType] = dataStore.synchronized {
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom] = dataStore.synchronized {
     if(dataStore.get(dynamoCompositeKey).isDefined) {
       fail(IDConflictError)
     } else {
@@ -34,18 +30,14 @@ abstract class MemoryStore extends DataStore {
     }
   }
 
-  def updateAtom(newAtom: DataType) = dataStore.synchronized {
-    val newAtomId = atomSkeleton.getId(newAtom)
-    val newAtomRevision = atomSkeleton.getContentChangeDetails(newAtom).revision
-
-    getAtom(newAtomId) match {
+  def updateAtom(newAtom: Atom) = dataStore.synchronized {
+    getAtom(newAtom.id) match {
       case Right(oldAtom) =>
-        val oldAtomRevision = atomSkeleton.getContentChangeDetails(oldAtom).revision
-        if(oldAtomRevision >=
-             newAtomRevision) {
-          fail(VersionConflictError(newAtomRevision))
+        if(oldAtom.contentChangeDetails.revision >=
+             newAtom.contentChangeDetails.revision) {
+          fail(VersionConflictError(newAtom.contentChangeDetails.revision))
         } else {
-          dataStore(DynamoCompositeKey(newAtomId)) = newAtom
+          dataStore(DynamoCompositeKey(newAtom.id)) = newAtom
           succeed(newAtom)
         }
       case Left(_) => fail(IDNotFound)
@@ -54,15 +46,14 @@ abstract class MemoryStore extends DataStore {
 
   def listAtoms = Right(dataStore.values.iterator)
 
-  def deleteAtom(id: String): DataStoreResult[DataType] = deleteAtom(DynamoCompositeKey(id))
+  def deleteAtom(id: String): DataStoreResult[Atom] = deleteAtom(DynamoCompositeKey(id))
 
-  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[DataType] =
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
     dataStore.remove(dynamoCompositeKey) match {
       case Some(atom) => succeed(atom)
       case _ => fail(IDNotFound)
     }
 }
 
-class PreviewMemoryStore()(implicit override val atomSkeleton: AtomSkeleton[Atom]) extends MemoryStore() with PreviewDataStore
-class PublishedMemoryStore()(implicit override val atomSkeleton: AtomSkeleton[Atom]) extends MemoryStore() with PublishedDataStore
-class DraftDynamoMemoryStore()(implicit override val atomSkeleton: AtomSkeleton[Draft]) extends MemoryStore() with DraftDataStore
+class PreviewMemoryStore(initial: Map[DynamoCompositeKey, Atom]) extends MemoryStore(initial) with PreviewDataStore
+class PublishedMemoryStore(initial: Map[DynamoCompositeKey, Atom]) extends MemoryStore(initial) with PublishedDataStore

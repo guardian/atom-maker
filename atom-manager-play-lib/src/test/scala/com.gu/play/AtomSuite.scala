@@ -9,6 +9,8 @@ import org.scalatest.mock.MockitoSugar.mock
 import org.scalatestplus.play.PlaySpec
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule, GuiceableModuleConversions}
 import play.api.inject.{Binding, bind}
+
+import scala.collection.mutable.{Map => MMap}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success}
 
