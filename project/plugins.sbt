@@ -15,5 +15,3 @@ addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "1.1")
 // for creating test cases that use a local dynamodb
 
 addSbtPlugin("com.localytics" % "sbt-dynamodb" % "1.5.3")
-
-addSbtPlugin("com.gu" % "thrift-transformer-sbt" % "1.0.1")
