@@ -5,6 +5,7 @@ import java.util.Date
 import com.gu.contentatom.thrift.atom.cta.CTAAtom
 import com.gu.contentatom.thrift.atom.media._
 import com.gu.contentatom.thrift.{ContentAtomEvent, _}
+import com.gu.draftcontentatom.thrift.{Atom => Draft, ContentChangeDetails => DraftContentChangeDetails}
 
 object TestData {
   val testAtoms = List(
@@ -124,4 +125,21 @@ object TestData {
 
   def testAtomEvent(atom: Atom = testAtom) =
     ContentAtomEvent(testAtom, EventType.Update, new Date().getTime)
+
+  val testDraftAtoms = List(
+    Draft(
+      id = Some("1"),
+      contentChangeDetails = Some(DraftContentChangeDetails(revision = Some(1)))
+    ),
+    Draft(
+      id = Some("2"),
+      contentChangeDetails = Some(DraftContentChangeDetails(revision = Some(4)))
+    ),
+    Draft(
+      id = Some("3"),
+      contentChangeDetails = Some(DraftContentChangeDetails(revision = Some(4)))
+    )
+  )
+
+  val testDraftAtom = testDraftAtoms.head
 }
