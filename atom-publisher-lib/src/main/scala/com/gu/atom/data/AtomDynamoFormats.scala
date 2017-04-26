@@ -16,7 +16,7 @@ import com.gu.scanamo.DynamoFormat
 import com.gu.scanamo.error.{DynamoReadError, TypeCoercionError}
 import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
 
-trait AtomDynamoFormats {
+object AtomDynamoFormats {
   implicit val dynamoFormat: DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
     def write(t: AtomData) = t match {
       case Quiz(_) => quizFormat.write(t)

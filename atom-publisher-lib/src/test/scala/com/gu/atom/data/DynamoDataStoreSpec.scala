@@ -5,6 +5,10 @@ import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType._
 import com.gu.atom.TestData._
 import com.gu.atom.util.AtomImplicitsGeneral
 import org.scalatest.{BeforeAndAfterAll, Matchers, OptionValues, fixture}
+import com.gu.draftcontentatom.thrift.{Atom => Draft}
+
+import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
+import com.gu.atom.data.AtomDynamoFormats._
 
 class DynamoDataStoreSpec
     extends fixture.FunSpec
@@ -16,10 +20,12 @@ class DynamoDataStoreSpec
   val tableName = "atom-test-table"
   val publishedTableName = "published-atom-test-table"
   val compositeKeyTableName = "composite-key-table"
+  val draftTableName = "draft-atom-test-table"
 
   case class DataStores(preview: PreviewDynamoDataStore,
                         published: PublishedDynamoDataStore,
-                        compositeKey: PreviewDynamoDataStore
+                        compositeKey: PreviewDynamoDataStore,
+                        draft: DraftDynamoDataStore
                        )
 
   type FixtureParam = DataStores
@@ -28,7 +34,8 @@ class DynamoDataStoreSpec
     val previewDb = new PreviewDynamoDataStore(LocalDynamoDB.client, tableName)
     val compositeKeyDb = new PreviewDynamoDataStore(LocalDynamoDB.client, compositeKeyTableName)
     val publishedDb = new PublishedDynamoDataStore(LocalDynamoDB.client, publishedTableName)
-    super.withFixture(test.toNoArgTest(DataStores(previewDb, publishedDb, compositeKeyDb)))
+    val draftDb = new DraftDynamoDataStore(LocalDynamoDB.client, draftTableName)
+    super.withFixture(test.toNoArgTest(DataStores(previewDb, publishedDb, compositeKeyDb, draftDb)))
   }
 
   describe("DynamoDataStore") {
@@ -91,6 +98,27 @@ class DynamoDataStoreSpec
       dataStores.compositeKey.createAtom(key, testAtomForDeletion) should equal(Right(testAtomForDeletion))
       dataStores.compositeKey.deleteAtom(key) should equal(Right(testAtomForDeletion))
     }
+
+    it("should create a new draft atom") { dataStores =>
+      dataStores.draft.createAtom(testDraftAtom) should equal(Right(testDraftAtom))
+    }
+
+    it("should list all draft atoms") { dataStores =>
+      dataStores.draft.createAtom(testDraftAtoms(1))
+      dataStores.draft.createAtom(testDraftAtoms(2))
+      dataStores.draft.listAtoms.map(_.toList).fold(identity, res => res should contain theSameElementsAs testDraftAtoms)
+    }
+
+    it("should return a specific draft atom") { dataStores =>
+      dataStores.draft.getAtom(testDraftAtom.id.get) should equal(Right(testDraftAtom))
+    }
+
+    it("should update the draft atom") { dataStores =>
+      val updated: Draft = testDraftAtom.copy(defaultHtml = Some("<div>updated</div>"))
+
+      dataStores.draft.updateAtom(updated) should equal(Right(updated))
+      dataStores.draft.getAtom(testDraftAtom.id.get) should equal(Right(updated))
+    }
   }
 
   override def beforeAll() = {
@@ -98,5 +126,6 @@ class DynamoDataStoreSpec
     LocalDynamoDB.createTable(client)(tableName)('id -> S)
     LocalDynamoDB.createTable(client)(publishedTableName)('id -> S)
     LocalDynamoDB.createTable(client)(compositeKeyTableName)('atomType -> S, 'id -> S)
+    LocalDynamoDB.createTable(client)(draftTableName)('id -> S)
   }
 }
