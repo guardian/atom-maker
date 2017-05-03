@@ -1,8 +1,6 @@
 package com.gu.atom.data
 
-import com.gu.contentatom.thrift.{Atom, ContentChangeDetails}
-import simulacrum.typeclass
-import com.gu.draftcontentatom.thrift.{Atom => Draft}
+import com.gu.contentatom.thrift.Atom
 
 sealed abstract class DataStoreError(val msg: String) extends Exception(msg)
 
@@ -17,52 +15,24 @@ case class  ClientError(info: String) extends DataStoreError(s"Client was unable
 
 trait DataStore extends DataStoreResult {
 
-  type DataType
+  def getAtom(id: String): DataStoreResult[Atom]
 
-  def getAtom(id: String): DataStoreResult[DataType]
+  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom]
 
-  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[DataType]
+  def createAtom(atom: Atom): DataStoreResult[Atom]
 
-  def createAtom(atom: DataType): DataStoreResult[DataType]
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom]
 
-  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: DataType): DataStoreResult[DataType]
-
-  def listAtoms: DataStoreResult[Iterator[DataType]]
+  def listAtoms: DataStoreResult[Iterator[Atom]]
 
   /* this will only allow the update if the version in atom is later
  * than the version stored in the database, otherwise it will report
  * it as a version conflict error */
-  def updateAtom(newAtom: DataType): DataStoreResult[DataType]
+  def updateAtom(newAtom: Atom): DataStoreResult[Atom]
 
-  def deleteAtom(id: String): DataStoreResult[DataType]
+  def deleteAtom(id: String): DataStoreResult[Atom]
 
-  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[DataType]
-}
-
-object DataStore {
-  @typeclass
-  sealed trait AtomSkeleton[T] {
-    def getId(atom: T): String
-    def getContentChangeDetails(atom: T): ContentChangeDetails
-  }
-
-  implicit val CompleteAtom: AtomSkeleton[Atom] = new AtomSkeleton[Atom] {
-    override def getId(atom: Atom) = atom.id
-    override def getContentChangeDetails(atom: Atom): ContentChangeDetails = atom.contentChangeDetails
-  }
-
-  implicit val DraftAtom: AtomSkeleton[Draft] = new AtomSkeleton[Draft] {
-    override def getId(atom: Draft) = atom.id.get
-
-    override def getContentChangeDetails(atom: Draft): ContentChangeDetails = {
-      val contentChangeDetails = for {
-        draftContentChangeDetails <- atom.contentChangeDetails
-        revision <- draftContentChangeDetails.revision
-      } yield ContentChangeDetails(revision = revision)
-
-      contentChangeDetails.getOrElse(ContentChangeDetails(revision = 1))
-    }
-  }
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom]
 }
 
 trait DataStoreResult {
@@ -74,16 +44,8 @@ trait DataStoreResult {
 
 object DataStoreResult extends DataStoreResult
 
-trait PreviewDataStore extends DataStore {
-  type DataType = Atom
-}
+trait PreviewDataStore extends DataStore
 
-trait PublishedDataStore extends DataStore {
-  type DataType = Atom
-}
-
-trait DraftDataStore extends DataStore {
-  type DataType = Draft
-}
+trait PublishedDataStore extends DataStore
 
 case class DynamoCompositeKey(partitionKey: String, sortKey: Option[String] = None)
