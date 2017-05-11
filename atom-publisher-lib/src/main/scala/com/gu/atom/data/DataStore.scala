@@ -13,7 +13,7 @@ case class  VersionConflictError(requestVer: Long) extends DataStoreError(s"Upda
 case class  DynamoError(info: String) extends DataStoreError(s"Dynamo was unable to process this request. Error message $info")
 case class  ClientError(info: String) extends DataStoreError(s"Client was unable to get a response from a service, or if the client was unable to parse the response from a service. Error message: $info")
 
-trait DataStore extends DataStoreResult {
+trait AtomDataStore extends DataStoreResultUtil {
 
   def getAtom(id: String): DataStoreResult[Atom]
 
@@ -35,17 +35,17 @@ trait DataStore extends DataStoreResult {
   def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom]
 }
 
-trait DataStoreResult {
+trait DataStoreResultUtil {
   type DataStoreResult[R] = Either[DataStoreError, R]
 
   def fail(error: DataStoreError): DataStoreResult[Nothing] = Left(error)
   def succeed[R](result: => R): DataStoreResult[R] = Right(result)
 }
 
-object DataStoreResult extends DataStoreResult
+object DataStoreResultUtil extends DataStoreResultUtil
 
-trait PreviewDataStore extends DataStore
+trait PreviewDataStore extends AtomDataStore
 
-trait PublishedDataStore extends DataStore
+trait PublishedDataStore extends AtomDataStore
 
 case class DynamoCompositeKey(partitionKey: String, sortKey: Option[String] = None)
