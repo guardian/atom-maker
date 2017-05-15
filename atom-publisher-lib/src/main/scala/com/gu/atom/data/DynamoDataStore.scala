@@ -16,7 +16,7 @@ import com.gu.scanamo.{Scanamo, Table}
 
 abstract class DynamoDataStore
   (dynamo: AmazonDynamoDBClient, tableName: String)
-    extends DataStore with AtomDynamoFormats {
+    extends AtomDataStore with AtomDynamoFormats {
 
   sealed trait DynamoResult
 
