@@ -42,7 +42,7 @@ trait AtomDynamoFormats {
         .getOrElse(Left(TypeCoercionError(new RuntimeException(s"No dynamo format to read $av"))))
   }
 
-  private val allFormats: List[DynamoFormat[AtomData]] = List(quizFormat, mediaFormat, explainerFormat, ctaFormat, interactiveFormat, reviewFormat, recipeFormat, storyquestionsFormat)
+  private val allFormats: List[DynamoFormat[AtomData]] = List(quizFormat, mediaFormat, explainerFormat, ctaFormat, interactiveFormat, reviewFormat, recipeFormat, storyquestionsFormat, qaFormat, profileFormat, guideFormat, timelineFormat)
 
   private def fallback(atomData: AtomData): AttributeValue = new AttributeValue().withS(s"unknown atom data type $atomData")
 
