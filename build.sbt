@@ -8,6 +8,7 @@ name := "atom-maker-lib"
 lazy val baseSettings = Seq(
   organization := "com.gu",
   scalaVersion := "2.11.8",
+  scalacOptions := Seq("-Ystatistics"),
   licenses := Seq("Apache V2" -> url("http://www.apache.org/licenses/LICENSE-2.0.html")),
   scmInfo := Some(ScmInfo(url("https://github.com/guardian/atom-maker"),
     "scm:git:git@github.com:guardian/atom-maker.git"))
@@ -52,4 +53,3 @@ lazy val atomLibraries = (project in file("."))
     pushChanges
   )
 )
-
