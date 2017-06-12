@@ -3,6 +3,8 @@ package com.gu.atom.data
 import cats.syntax.either._
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.gu.atom.util._
+import com.gu.contentatom.thrift.AtomData
+import com.gu.contentatom.thrift.AtomData._
 import com.gu.contentatom.thrift.atom.cta.CTAAtom
 import com.gu.contentatom.thrift.atom.explainer.ExplainerAtom
 import com.gu.contentatom.thrift.atom.interactive.InteractiveAtom
