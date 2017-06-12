@@ -28,5 +28,6 @@ libraryDependencies ++= Seq(
   "org.mockito"                %  "mockito-core"         % mockitoVersion % "test",
   "org.scalatest"              %% "scalatest"            % "2.2.6" % "test",
   "com.typesafe.akka"          %% "akka-testkit"         % akkaVersion % "test",
-  "org.typelevel"              %% "cats-core"            % "0.9.0"
+  "org.typelevel"              %% "cats-core"            % "0.9.0",
+  "com.chuusai"                %% "shapeless"            % "2.2.4"
 ) ++  scanamoDeps
