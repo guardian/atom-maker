@@ -19,47 +19,13 @@ import com.gu.contentatom.thrift.atom.timeline.{TimelineItem, TimelineAtom}
 import com.gu.contentatom.thrift.AtomData
 import com.gu.scanamo.DynamoFormat
 import com.gu.scanamo.error.{DynamoReadError, TypeCoercionError}
-import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
 import com.twitter.scrooge.{ThriftStruct, ThriftStructCodec}
 import org.apache.thrift.protocol.TProtocol
 
 trait AtomDynamoFormats {
-  // summon implicits for atom parts
-  DynamoFormat[ImageAssetDimensions]
-  DynamoFormat[ImageAsset]
-  DynamoFormat[Image]
-  DynamoFormat[EDisplayType]
-  DynamoFormat[Platform]
-  DynamoFormat[AssetType]
-  DynamoFormat[Category]
-  DynamoFormat[PrivacyStatus]
-  DynamoFormat[PData]
-  DynamoFormat[Metadata]
-  DynamoFormat[ResultGroup]
-  DynamoFormat[QAsset]
-  DynamoFormat[Answer]
-  DynamoFormat[ResultBucket]
-  DynamoFormat[ResultBuckets]
-  DynamoFormat[QQuestion]
-  DynamoFormat[ResultGroups]
-  DynamoFormat[QuizContent]
-  DynamoFormat[Tags]
-  DynamoFormat[Time]
-  DynamoFormat[Serves]
-  DynamoFormat[Range]
-  DynamoFormat[Ingredient]
-  DynamoFormat[IngredientsList]
-  DynamoFormat[Rating]
-  DynamoFormat[SQuestion]
-  DynamoFormat[SQuestionSet]
-  DynamoFormat[QAndAItem]
-  DynamoFormat[GuideItem]
-  DynamoFormat[ProfileItem]
-  DynamoFormat[TimelineItem]
+  private def writeAtom[A <: ThriftStruct](atomData: A)(implicit f: ThriftDynamoFormat[A]): AttributeValue = f.write(atomData)
 
-  private def writeAtom[A <: ThriftStruct](atomData: A)(implicit f: DynamoFormat[A]): AttributeValue = f.write(atomData)
-
-  private def readAtom[A <: ThriftStruct](av: AttributeValue)(implicit f: DynamoFormat[A]): Either[DynamoReadError, A] = f.read(av)
+  private def readAtom[A <: ThriftStruct](av: AttributeValue)(implicit f: ThriftDynamoFormat[A]): Either[DynamoReadError, A] = f.read(av)
 
   private val allReaders = List(
     readAtom[QuizAtom] _,
@@ -76,7 +42,7 @@ trait AtomDynamoFormats {
     readAtom[TimelineAtom] _
   )
 
-  implicit val dynamoFormat: DynamoFormat[AtomData] = new DynamoFormat[AtomData] {
+  implicit val dynamoFormat: ThriftDynamoFormat[AtomData] = new ThriftDynamoFormat[AtomData] {
     def write(t: AtomData) = t match {
       case AtomData.Quiz(d)            => writeAtom[QuizAtom](d)
       case AtomData.Media(d)           => writeAtom[MediaAtom](d)
