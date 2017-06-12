@@ -5,21 +5,21 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.gu.atom.util._
 import com.gu.contentatom.thrift.{ImageAsset, ImageAssetDimensions, Image}
 import com.gu.contentatom.thrift.atom.cta.CTAAtom
-import com.gu.contentatom.thrift.atom.explainer.{ExplainerAtom, DisplayType => EDisplayType}
+import com.gu.contentatom.thrift.atom.explainer.ExplainerAtom
 import com.gu.contentatom.thrift.atom.interactive.InteractiveAtom
-import com.gu.contentatom.thrift.atom.media.{MediaAtom, Platform, AssetType, Category, PrivacyStatus, Asset => MAsset, PlutoData => PData, Metadata}
-import com.gu.contentatom.thrift.atom.quiz.{ResultGroup, Asset => QAsset, Answer, ResultBucket, ResultBuckets, Question => QQuestion, ResultGroups, QuizContent, QuizAtom}
-import com.gu.contentatom.thrift.atom.recipe.{Tags, Time, Serves, Range, Ingredient, IngredientsList, RecipeAtom}
-import com.gu.contentatom.thrift.atom.review.{Rating, ReviewAtom}
-import com.gu.contentatom.thrift.atom.storyquestions.{Question => SQuestion, QuestionSet => SQuestionSet, StoryQuestionsAtom}
-import com.gu.contentatom.thrift.atom.qanda.{QAndAItem, QAndAAtom}
-import com.gu.contentatom.thrift.atom.guide.{GuideItem, GuideAtom}
-import com.gu.contentatom.thrift.atom.profile.{ProfileItem, ProfileAtom}
-import com.gu.contentatom.thrift.atom.timeline.{TimelineItem, TimelineAtom}
+import com.gu.contentatom.thrift.atom.media.MediaAtom
+import com.gu.contentatom.thrift.atom.quiz.QuizAtom
+import com.gu.contentatom.thrift.atom.recipe.RecipeAtom
+import com.gu.contentatom.thrift.atom.review.ReviewAtom
+import com.gu.contentatom.thrift.atom.storyquestions.StoryQuestionsAtom
+import com.gu.contentatom.thrift.atom.qanda.QAndAAtom
+import com.gu.contentatom.thrift.atom.guide.GuideAtom
+import com.gu.contentatom.thrift.atom.profile.ProfileAtom
+import com.gu.contentatom.thrift.atom.timeline.TimelineAtom
 import com.gu.contentatom.thrift.AtomData
 import com.gu.scanamo.DynamoFormat
 import com.gu.scanamo.error.{DynamoReadError, TypeCoercionError}
-import com.twitter.scrooge.{ThriftStruct, ThriftStructCodec}
+import com.twitter.scrooge.ThriftStruct
 import org.apache.thrift.protocol.TProtocol
 
 trait AtomDynamoFormats {
