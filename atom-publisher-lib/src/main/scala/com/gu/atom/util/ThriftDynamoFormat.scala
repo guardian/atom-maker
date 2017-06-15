@@ -19,11 +19,8 @@ object ThriftDynamoFormat {
   implicit val hnil: ThriftDynamoFormat[HNil] = new ThriftDynamoFormat[HNil] {
     def read(av: AttributeValue): Either[DynamoReadError, HNil] =
       Right(HNil)
-    def write(t: HNil): AttributeValue = {
-      var av = new AttributeValue
-      av.setM(Map.empty[String, AttributeValue].asJava)
-      av
-    }
+    def write(t: HNil): AttributeValue =
+      new AttributeValue().withM(Map.empty[String, AttributeValue].asJava)
   }
 
   implicit def hcons[K <: Symbol, H, T <: HList](
@@ -41,7 +38,7 @@ object ThriftDynamoFormat {
     def write(t: FieldType[K, H] :: T): AttributeValue = {
       val hv = hInst.value.write(t.head)
       val tv = tInst.write(t.tail)
-      tv.addMEntry(fieldName, hv)
+      tv.withM((tv.getM.asScala + (fieldName -> hv)).asJava)
     }
   }
 
