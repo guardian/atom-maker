@@ -2,9 +2,9 @@ package com.gu.atom.data
 
 import cats.syntax.either._
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
-import com.gu.atom.util._
+import com.gu.atom.facade.AtomFacade
+import com.gu.atom.util.ThriftDynamoFormat
 import com.gu.contentatom.thrift.AtomData
-import com.gu.contentatom.thrift.AtomData._
 import com.gu.contentatom.thrift.atom.cta.CTAAtom
 import com.gu.contentatom.thrift.atom.explainer.ExplainerAtom
 import com.gu.contentatom.thrift.atom.interactive.InteractiveAtom
@@ -21,9 +21,11 @@ import com.gu.contentatom.thrift.AtomData
 import com.gu.scanamo.DynamoFormat
 import com.gu.scanamo.error.{DynamoReadError, TypeCoercionError}
 import com.twitter.scrooge.ThriftStruct
-import org.apache.thrift.protocol.TProtocol
 
 trait AtomDynamoFormats {
+  import AtomFacade._
+  import ThriftDynamoFormat._
+
   private def writeAtom[A <: ThriftStruct](atomData: A)(implicit f: ThriftDynamoFormat[A]): AttributeValue = f.write(atomData)
 
   private def readAtom[A <: ThriftStruct](av: AttributeValue)(implicit f: ThriftDynamoFormat[A]): Either[DynamoReadError, A] = f.read(av)
@@ -57,7 +59,7 @@ trait AtomDynamoFormats {
       case AtomData.Profile(d)         => writeAtom[ProfileAtom](d)
       case AtomData.Qa(d)              => writeAtom[QAndAAtom](d)
       case AtomData.Timeline(d)        => writeAtom[TimelineAtom](d)
-      case AtomData.UnknownUnionField(_) => throw new RuntimeException("Unknown atom data type found.")
+      case _                           => throw new RuntimeException("Unknown atom data type found.")
     }
 
     def read(av: AttributeValue): Either[DynamoReadError, AtomData] = {
