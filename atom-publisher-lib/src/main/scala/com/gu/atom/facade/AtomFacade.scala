@@ -26,6 +26,180 @@ import shapeless.syntax.singleton._
 object AtomFacade {
   type F[K, V] = FieldType[K, V]
 
+  /*** ENUMS ***/
+
+  implicit val gplatform = new Generic[Platform] {
+    type Repr = String :: HNil
+
+    def to(a: Platform): Repr = (a match {
+      case Platform.Youtube => "youtube"
+      case Platform.Facebook => "facebook"
+      case Platform.Dailymotion => "dailymotion"
+      case Platform.Mainstream => "maintsream"
+      case Platform.Url => "url"
+    }) :: HNil
+
+    def from(r: Repr): Platform = r.head match {
+      case "youtube" => Platform.Youtube
+      case "facebook" => Platform.Facebook
+      case "dailymotion" => Platform.Dailymotion
+      case "maintsream" => Platform.Mainstream
+      case "url" => Platform.Url
+    }
+  }
+
+  implicit val gassettype = new Generic[AssetType] {
+    type Repr = String :: HNil
+
+    def to(a: AssetType): Repr = (a match {
+      case AssetType.Audio => "audio"
+      case AssetType.Video => "video"
+    }) :: HNil
+
+    def from(r: Repr): AssetType = r.head match {
+      case "audio" => AssetType.Audio
+      case "video" => AssetType.Video
+    }
+  }
+
+  implicit val gcategory = new Generic[Category] {
+    type Repr = String :: HNil
+
+    def to(a: Category): Repr = (a match {
+      case Category.Documentary => "documentary"
+      case Category.Explainer => "explainer"
+      case Category.Feature => "feature"
+      case Category.News => "news"
+      case Category.Hosted => "hosted"
+    }) :: HNil
+
+    def from(r: Repr): Category = r.head match {
+      case "documentary" => Category.Documentary
+      case "explainer" => Category.Explainer
+      case "feature" => Category.Feature
+      case "news" => Category.News
+      case "hosted" => Category.Hosted
+    }
+  }
+
+  implicit val gprivacystatus = new Generic[PrivacyStatus] {
+    type Repr = String :: HNil
+
+    def to(a: PrivacyStatus): Repr = (a match {
+      case PrivacyStatus.Private => "private"
+      case PrivacyStatus.Unlisted => "unlisted"
+      case PrivacyStatus.Public => "public"
+    }) :: HNil
+
+    def from(r: Repr): PrivacyStatus = r.head match {
+      case "private" => PrivacyStatus.Private
+      case "unlisted" => PrivacyStatus.Unlisted
+      case "public" => PrivacyStatus.Public
+    }
+  }
+
+  implicit val greviewtype = new Generic[ReviewType] {
+    type Repr = String :: HNil
+
+    def to(a: ReviewType): Repr = (a match {
+      case ReviewType.Restaurant => "restaurant"
+      case ReviewType.Game => "game"
+      case ReviewType.Film => "film"
+    }) :: HNil
+
+    def from(r: Repr): ReviewType = r.head match {
+      case "restaurant" => ReviewType.Restaurant
+      case "game" => ReviewType.Game
+      case "film" => ReviewType.Film
+    }
+  }
+
+  implicit val grelatedstorylinktype = new Generic[RelatedStoryLinkType] {
+    type Repr = String :: HNil
+
+    def to(a: RelatedStoryLinkType): Repr = (a match {
+      case RelatedStoryLinkType.Tag => "tag"
+      case RelatedStoryLinkType.Story => "story"
+    }) :: HNil
+
+    def from(r: Repr): RelatedStoryLinkType = r.head match {
+      case "tag" => RelatedStoryLinkType.Tag
+      case "story" => RelatedStoryLinkType.Story
+    }
+  }
+
+  implicit val gatomtype = new Generic[AtomType] {
+    type Repr = String :: HNil
+
+    def to(a: AtomType): Repr = (a match {
+      case AtomType.Quiz => "quiz"
+      case AtomType.Media => "media"
+      case AtomType.Explainer => "explainer"
+      case AtomType.Cta => "cta"
+      case AtomType.Interactive => "interactive"
+      case AtomType.Review => "review"
+      case AtomType.Recipe => "recipe"
+      case AtomType.Storyquestions => "storyquestions"
+      case AtomType.Qanda => "qanda"
+      case AtomType.Profile => "profile"
+      case AtomType.Guide => "guide"
+      case AtomType.Timeline => "timeline"
+    }) :: HNil
+
+    def from(r: Repr): AtomType = r.head match {
+      case "quiz" => AtomType.Quiz
+      case "media" => AtomType.Media
+      case "explainer" => AtomType.Explainer
+      case "cta" => AtomType.Cta
+      case "interactive" => AtomType.Interactive
+      case "review" => AtomType.Review
+      case "recipe" => AtomType.Recipe
+      case "storyquestions" => AtomType.Storyquestions
+      case "qanda" => AtomType.Qanda
+      case "profile" => AtomType.Profile
+      case "guide" => AtomType.Guide
+      case "timeline" => AtomType.Timeline
+    }
+  }
+
+  implicit val gdisplaytype = new Generic[DisplayType] {
+    type Repr = String :: HNil
+
+    def to(a: DisplayType): Repr = (a match {
+      case DisplayType.Flat => "flat"
+      case DisplayType.Expandable => "expandable"
+      case DisplayType.Carousel => "carousel"
+    }) :: HNil
+
+    def from(r: Repr): DisplayType = r.head match {
+      case "flat" => DisplayType.Flat
+      case "expandable" => DisplayType.Expandable
+      case "carousel" => DisplayType.Carousel
+    }
+  }
+
+  implicit val gentitytype = new Generic[EntityType] {
+    type Repr = String :: HNil
+
+    def to(a: EntityType): Repr = (a match {
+      case EntityType.Person => "person"
+      case EntityType.Film => "film"
+      case EntityType.Game => "game"
+      case EntityType.Restaurant => "restaurant"
+      case EntityType.Place => "place"
+      case EntityType.Organisation => "organisation"
+    }) :: HNil
+
+    def from(r: Repr): EntityType = r.head match {
+      case "person" => EntityType.Person
+      case "film" => EntityType.Film
+      case "game" => EntityType.Game
+      case "restaurant" => EntityType.Restaurant
+      case "place" => EntityType.Place
+      case "organisation" => EntityType.Organisation
+    }
+  }
+
   /*** ATOM ***/
 
   implicit val guser = new LabelledGeneric[User] {
