@@ -23,13 +23,15 @@ abstract class DynamoDataStore
 
   sealed trait DynamoResult
 
+  implicit val atomFormat = implicitly[ThriftDynamoFormat[Atom]]
+
   implicit class DynamoPutResult(res: PutItemResult) extends DynamoResult
 
   // useful shortcuts
-  private def get(key: UniqueKey[_])(implicit d: ThriftDynamoFormat[Atom]) =
-    Scanamo.get[Atom](dynamo)(tableName)(key)(d)
-  private def put(item: Atom)(implicit d: ThriftDynamoFormat[Atom]) =
-    Scanamo.put[Atom](dynamo)(tableName)(item)(d)
+  private def get(key: UniqueKey[_]) =
+    Scanamo.get[Atom](dynamo)(tableName)(key)(atomFormat)
+  private def put(item: Atom) =
+    Scanamo.put[Atom](dynamo)(tableName)(item)(atomFormat)
   private def delete = Scanamo.delete(dynamo)(tableName) _
 
   private def exceptionSafePut(atom: Atom): DataStoreResult[Atom] = {
@@ -90,8 +92,8 @@ abstract class DynamoDataStore
         fail(error)
     }
 
-  private def findAtoms(tableName: String)(implicit d: ThriftDynamoFormat[Atom]): DataStoreResult[List[Atom]] =
-    Scanamo.scan[Atom](dynamo)(tableName)(d).sequenceU.leftMap {
+  private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
+    Scanamo.scan[Atom](dynamo)(tableName)(atomFormat).sequenceU.leftMap {
       _ => ReadError
     }
 
@@ -101,7 +103,6 @@ abstract class DynamoDataStore
 
 class PreviewDynamoDataStore
 (dynamo: AmazonDynamoDBClient, tableName: String)
-(implicit d: ThriftDynamoFormat[Atom])
   extends DynamoDataStore(dynamo, tableName)
   with PreviewDataStore {
 
@@ -109,7 +110,7 @@ class PreviewDynamoDataStore
     val validationCheck = NestedKeyIs(
       List('contentChangeDetails, 'revision), LT, newAtom.contentChangeDetails.revision
     )
-    val res = Scanamo.exec(dynamo)(Table[Atom](tableName)(d).given(validationCheck).put(newAtom))
+    val res = Scanamo.exec(dynamo)(Table[Atom](tableName)(atomFormat).given(validationCheck).put(newAtom))
     res.fold(_ => Left(VersionConflictError(newAtom.contentChangeDetails.revision)), _ => Right(newAtom))
   }
 
@@ -117,12 +118,11 @@ class PreviewDynamoDataStore
 
 class PublishedDynamoDataStore
 (dynamo: AmazonDynamoDBClient, tableName: String)
-(implicit d: ThriftDynamoFormat[Atom])
   extends DynamoDataStore(dynamo, tableName)
   with PublishedDataStore {
 
   def updateAtom(newAtom: Atom) = {
-    Scanamo.exec(dynamo)(Table[Atom](tableName)(d).put(newAtom))
+    Scanamo.exec(dynamo)(Table[Atom](tableName)(atomFormat).put(newAtom))
     succeed(newAtom)
   }
 }
