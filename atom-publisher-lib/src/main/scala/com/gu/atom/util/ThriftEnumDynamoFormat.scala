@@ -10,13 +10,8 @@ import shapeless._
 import shapeless.labelled._
 import shapeless.syntax.singleton._
 
-trait ThriftEnumDynamoFormat[T] extends DynamoFormat[T] {
-  def read(av: AttributeValue): Either[DynamoReadError, T]
-  def write(t: T): AttributeValue
-}
-
 object ThriftEnumDynamoFormat {
-  implicit val henum: ThriftEnumDynamoFormat[String :: HNil] = new ThriftEnumDynamoFormat[String :: HNil] {
+  implicit val henum: DynamoFormat[String :: HNil] = new DynamoFormat[String :: HNil] {
     def read(av: AttributeValue): Either[DynamoReadError, String :: HNil] =
       Right(av.getS :: HNil)
     def write(t: String :: HNil): AttributeValue =
@@ -25,8 +20,8 @@ object ThriftEnumDynamoFormat {
 
   implicit def genHListFormatter[T <: ThriftEnum](
     implicit
-    gen: Generic[T]
-  ): ThriftEnumDynamoFormat[T] = new ThriftEnumDynamoFormat[T] {
+    gen: Generic.Aux[T, String :: HNil]
+  ): DynamoFormat[T] = new DynamoFormat[T] {
     def read(av: AttributeValue): Either[DynamoReadError, T] = henum.read(av) map gen.from
     def write(t: T): AttributeValue = henum.write(gen.to(t))
   }
