@@ -3,7 +3,7 @@ package com.gu.atom.util
 import cats.syntax.either._
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.gu.scanamo.DynamoFormat
-import com.gu.scanamo.error.DynamoReadError
+import com.gu.scanamo.error.{DynamoReadError, MissingProperty}
 import com.twitter.scrooge.ThriftStruct
 import collection.JavaConverters._
 import shapeless._
@@ -16,6 +16,8 @@ trait ThriftDynamoFormat[T] extends DynamoFormat[T] {
 }
 
 object ThriftDynamoFormat {
+  type NotThriftStruct[T] = |¬|[ThriftStruct]#λ[T]
+
   implicit val hnil: ThriftDynamoFormat[HNil] = new ThriftDynamoFormat[HNil] {
     override def read(av: AttributeValue): Either[DynamoReadError, HNil] =
       Right(HNil)
@@ -23,7 +25,7 @@ object ThriftDynamoFormat {
       new AttributeValue().withM(Map.empty[String, AttributeValue].asJava)
   }
 
-  implicit def hcons[K <: Symbol, H, T <: HList](
+  implicit def hconsThrift[K <: Symbol, H, T <: HList](
     implicit
     witness: Witness.Aux[K],
     hInst: Lazy[DynamoFormat[H]],
@@ -31,7 +33,12 @@ object ThriftDynamoFormat {
   ): ThriftDynamoFormat[FieldType[K, H] :: T] = new ThriftDynamoFormat[FieldType[K, H] :: T] {
     val fieldName = witness.value.name
     override def read(av: AttributeValue): Either[DynamoReadError, FieldType[K, H] :: T] = {
-      val h: Either[DynamoReadError, H] = hInst.value.read(av)
+      val map = av.getM.asScala
+      val h: Either[DynamoReadError, H] = map.get(fieldName).map(hInst.value.read _).orElse(
+        hInst.value.default.map(Either.right)
+      ).getOrElse(
+        Either.left[DynamoReadError, H](MissingProperty)
+      )
       val t: Either[DynamoReadError, T] = tInst.read(av)
       t flatMap { t: T => h map { h: H => field[witness.T](h) :: t }}
     }
@@ -47,7 +54,9 @@ object ThriftDynamoFormat {
     gen: LabelledGeneric.Aux[T, H],
     rInst: Lazy[ThriftDynamoFormat[H]]
   ): ThriftDynamoFormat[T] = new ThriftDynamoFormat[T] {
-    override def read(av: AttributeValue): Either[DynamoReadError, T] = rInst.value.read(av) map gen.from
-    override def write(t: T): AttributeValue = rInst.value.write(gen.to(t))
+    override def read(av: AttributeValue): Either[DynamoReadError, T] =
+      rInst.value.read(av) map gen.from
+    override def write(t: T): AttributeValue =
+      rInst.value.write(gen.to(t))
   }
 }

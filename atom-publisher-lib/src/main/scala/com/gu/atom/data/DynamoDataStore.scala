@@ -69,11 +69,7 @@ abstract class DynamoDataStore
   def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
     get(uniqueKey(dynamoCompositeKey)) match {
       case Some(Right(atom)) => Right(atom)
-      case Some(Left(error)) => {
-        println("*****")
-        println(DynamoReadError.describe(error))
-        Left(ReadError)
-      }
+      case Some(Left(error)) => Left(ReadError)
       case None => Left(IDNotFound)
     }
 

@@ -122,51 +122,6 @@ object AtomFacade {
     )
   }
 
-  implicit val gatomdata = new LabelledGeneric[AtomData] {
-    val t1 = Witness.`'quiz`
-    val t2 = Witness.`'media`
-    val t3 = Witness.`'explainer`
-    val t4 = Witness.`'cta`
-    val t5 = Witness.`'interactive`
-    val t6 = Witness.`'review`
-    val t7 = Witness.`'recipe`
-    val t8 = Witness.`'storyquestions`
-    val t9 = Witness.`'qa`
-    val t10 = Witness.`'guide`
-    val t11 = Witness.`'profile`
-    val t12 = Witness.`'timeline`
-
-    type Repr = F[t1.T, Option[QuizAtom]] :: F[t2.T, Option[MediaAtom]] :: F[t3.T, Option[ExplainerAtom]] :: F[t4.T, Option[CTAAtom]] :: F[t5.T, Option[InteractiveAtom]] ::F[t6.T, Option[ReviewAtom]] :: F[t7.T, Option[RecipeAtom]] :: F[t8.T, Option[StoryQuestionsAtom]] :: F[t9.T, Option[QAndAAtom]] :: F[t10.T, Option[GuideAtom]] :: F[t11.T, Option[ProfileAtom]] :: F[t12.T, Option[TimelineAtom]] :: HNil
-
-    def to(a: AtomData): Repr =
-      ('quiz           ->> (a match { case AtomData.Quiz(d)           => Some(d); case _ => None })) ::
-      ('media          ->> (a match { case AtomData.Media(d)          => Some(d); case _ => None })) ::
-      ('explainer      ->> (a match { case AtomData.Explainer(d)      => Some(d); case _ => None })) ::
-      ('cta            ->> (a match { case AtomData.Cta(d)            => Some(d); case _ => None })) ::
-      ('interactive    ->> (a match { case AtomData.Interactive(d)    => Some(d); case _ => None })) ::
-      ('review         ->> (a match { case AtomData.Review(d)         => Some(d); case _ => None })) ::
-      ('recipe         ->> (a match { case AtomData.Recipe(d)         => Some(d); case _ => None })) ::
-      ('storyquestions ->> (a match { case AtomData.Storyquestions(d) => Some(d); case _ => None })) ::
-      ('qa             ->> (a match { case AtomData.Qa(d)             => Some(d); case _ => None })) ::
-      ('guide          ->> (a match { case AtomData.Guide(d)          => Some(d); case _ => None })) ::
-      ('profile        ->> (a match { case AtomData.Profile(d)        => Some(d); case _ => None })) ::
-      ('timeline       ->> (a match { case AtomData.Timeline(d)       => Some(d); case _ => None })) :: HNil
-
-    def from(r: Repr): AtomData =
-      r.head.map(AtomData.Quiz(_))                                                            orElse
-      r.tail.head.map(AtomData.Media(_))                                                      orElse
-      r.tail.tail.head.map(AtomData.Explainer(_))                                             orElse
-      r.tail.tail.tail.head.map(AtomData.Cta(_))                                              orElse
-      r.tail.tail.tail.tail.head.map(AtomData.Interactive(_))                                 orElse
-      r.tail.tail.tail.tail.tail.head.map(AtomData.Review(_))                                 orElse
-      r.tail.tail.tail.tail.tail.tail.head.map(AtomData.Recipe(_))                            orElse
-      r.tail.tail.tail.tail.tail.tail.tail.head.map(AtomData.Storyquestions(_))               orElse
-      r.tail.tail.tail.tail.tail.tail.tail.tail.head.map(AtomData.Qa(_))                      orElse
-      r.tail.tail.tail.tail.tail.tail.tail.tail.tail.head.map(AtomData.Guide(_))              orElse
-      r.tail.tail.tail.tail.tail.tail.tail.tail.tail.tail.head.map(AtomData.Profile(_))       orElse
-      r.tail.tail.tail.tail.tail.tail.tail.tail.tail.tail.tail.head.map(AtomData.Timeline(_)) get
-  }
-
   implicit val gccd = new LabelledGeneric[ContentChangeDetails] {
     val t1 = Witness.`'lastModified`
     val t2 = Witness.`'created`
