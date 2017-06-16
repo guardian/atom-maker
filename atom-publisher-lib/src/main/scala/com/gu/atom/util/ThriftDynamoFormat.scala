@@ -10,14 +10,9 @@ import shapeless._
 import shapeless.labelled._
 import shapeless.syntax.singleton._
 
-trait ThriftDynamoFormat[T] extends DynamoFormat[T] {
-  override def read(av: AttributeValue): Either[DynamoReadError, T]
-  override def write(t: T): AttributeValue
-}
+trait ThriftDynamoFormat[T] extends DynamoFormat[T]
 
 object ThriftDynamoFormat {
-  type NotThriftStruct[T] = |¬|[ThriftStruct]#λ[T]
-
   implicit val hnil: ThriftDynamoFormat[HNil] = new ThriftDynamoFormat[HNil] {
     override def read(av: AttributeValue): Either[DynamoReadError, HNil] =
       Right(HNil)
