@@ -33,7 +33,7 @@ abstract class DynamoDataStore
     Scanamo.get[Atom](dynamo)(tableName)(key)(atomFormat)
   private def put(item: Atom) =
     Scanamo.put[Atom](dynamo)(tableName)(item)(atomFormat)
-  private def delete = Scanamo.delete(dynamo)(tableName) _
+  private val delete = Scanamo.delete(dynamo)(tableName) _
 
   private def exceptionSafePut(atom: Atom): DataStoreResult[Atom] = {
     try {
