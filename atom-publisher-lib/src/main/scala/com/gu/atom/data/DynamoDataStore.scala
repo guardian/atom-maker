@@ -10,7 +10,6 @@ import com.amazonaws.{AmazonClientException, AmazonServiceException}
 import com.gu.atom.data.ScanamoUtil._
 import com.gu.atom.facade.AtomFacade
 import com.gu.atom.util.ThriftDynamoFormat
-import com.gu.atom.util.ThriftEnumDynamoFormat
 import com.gu.contentatom.thrift.Atom
 import com.gu.scanamo.DynamoFormat._
 import com.gu.scanamo.query._
@@ -22,7 +21,6 @@ abstract class DynamoDataStore
     extends AtomDataStore with AtomDynamoFormats {
   import AtomFacade._
   import ThriftDynamoFormat._
-  import ThriftEnumDynamoFormat._
 
   sealed trait DynamoResult
 

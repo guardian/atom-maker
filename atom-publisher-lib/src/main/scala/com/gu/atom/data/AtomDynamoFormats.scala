@@ -4,7 +4,6 @@ import cats.syntax.either._
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.gu.atom.facade.AtomFacade
 import com.gu.atom.util.ThriftDynamoFormat
-import com.gu.atom.util.ThriftEnumDynamoFormat
 import com.gu.contentatom.thrift.AtomData
 import com.gu.contentatom.thrift.atom.cta.CTAAtom
 import com.gu.contentatom.thrift.atom.explainer.ExplainerAtom
@@ -26,7 +25,6 @@ import com.twitter.scrooge.ThriftStruct
 trait AtomDynamoFormats {
   import AtomFacade._
   import ThriftDynamoFormat._
-  import ThriftEnumDynamoFormat._
 
   private def writeAtom[A <: ThriftStruct](atomData: A)(implicit f: ThriftDynamoFormat[A]): AttributeValue = f.write(atomData)
 
