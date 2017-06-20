@@ -57,7 +57,7 @@ trait AtomDynamoFormats {
       case AtomData.Storyquestions(d)  => writeAtom[StoryQuestionsAtom](d)
       case AtomData.Guide(d)           => writeAtom[GuideAtom](d)
       case AtomData.Profile(d)         => writeAtom[ProfileAtom](d)
-      case AtomData.Qa(d)              => writeAtom[QAndAAtom](d)
+      case AtomData.Qanda(d)           => writeAtom[QAndAAtom](d)
       case AtomData.Timeline(d)        => writeAtom[TimelineAtom](d)
       case _                           => throw new RuntimeException("Unknown atom data type found.")
     }
@@ -78,7 +78,7 @@ trait AtomDynamoFormats {
         case d: StoryQuestionsAtom => AtomData.Storyquestions(d)
         case d: GuideAtom          => AtomData.Guide(d)
         case d: ProfileAtom        => AtomData.Profile(d)
-        case d: QAndAAtom          => AtomData.Qa(d)
+        case d: QAndAAtom          => AtomData.Qanda(d)
         case d: TimelineAtom       => AtomData.Timeline(d)
         case _                     => throw new RuntimeException("Unknown atom data type found.")
       }
