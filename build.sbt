@@ -52,4 +52,3 @@ lazy val atomLibraries = (project in file("."))
     pushChanges
   )
 )
-

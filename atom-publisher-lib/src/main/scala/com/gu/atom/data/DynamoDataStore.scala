@@ -8,23 +8,31 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model.PutItemResult
 import com.amazonaws.{AmazonClientException, AmazonServiceException}
 import com.gu.atom.data.ScanamoUtil._
+import com.gu.atom.facade.AtomFacade
+import com.gu.atom.util.ThriftDynamoFormat
 import com.gu.contentatom.thrift.Atom
 import com.gu.scanamo.DynamoFormat._
 import com.gu.scanamo.query._
-import com.gu.scanamo.scrooge.ScroogeDynamoFormat._
 import com.gu.scanamo.{Scanamo, Table}
+import com.gu.scanamo.error.DynamoReadError
 
 abstract class DynamoDataStore
   (dynamo: AmazonDynamoDBClient, tableName: String)
     extends AtomDataStore with AtomDynamoFormats {
+  import AtomFacade._
+  import ThriftDynamoFormat._
 
   sealed trait DynamoResult
+
+  implicit val atomFormat = implicitly[ThriftDynamoFormat[Atom]]
 
   implicit class DynamoPutResult(res: PutItemResult) extends DynamoResult
 
   // useful shortcuts
-  private val get = Scanamo.get[Atom](dynamo)(tableName) _
-  private val put = Scanamo.put[Atom](dynamo)(tableName) _
+  private def get(key: UniqueKey[_]) =
+    Scanamo.get[Atom](dynamo)(tableName)(key)(atomFormat)
+  private def put(item: Atom) =
+    Scanamo.put[Atom](dynamo)(tableName)(item)(atomFormat)
   private val delete = Scanamo.delete(dynamo)(tableName) _
 
   private def exceptionSafePut(atom: Atom): DataStoreResult[Atom] = {
@@ -86,7 +94,7 @@ abstract class DynamoDataStore
     }
 
   private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
-    Scanamo.scan[Atom](dynamo)(tableName).sequenceU.leftMap {
+    Scanamo.scan[Atom](dynamo)(tableName)(atomFormat).sequenceU.leftMap {
       _ => ReadError
     }
 
@@ -103,7 +111,7 @@ class PreviewDynamoDataStore
     val validationCheck = NestedKeyIs(
       List('contentChangeDetails, 'revision), LT, newAtom.contentChangeDetails.revision
     )
-    val res = Scanamo.exec(dynamo)(Table[Atom](tableName).given(validationCheck).put(newAtom))
+    val res = Scanamo.exec(dynamo)(Table[Atom](tableName)(atomFormat).given(validationCheck).put(newAtom))
     res.fold(_ => Left(VersionConflictError(newAtom.contentChangeDetails.revision)), _ => Right(newAtom))
   }
 
@@ -115,7 +123,7 @@ class PublishedDynamoDataStore
   with PublishedDataStore {
 
   def updateAtom(newAtom: Atom) = {
-    Scanamo.exec(dynamo)(Table[Atom](tableName).put(newAtom))
+    Scanamo.exec(dynamo)(Table[Atom](tableName)(atomFormat).put(newAtom))
     succeed(newAtom)
   }
 }
