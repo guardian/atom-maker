@@ -2,18 +2,19 @@ package com.gu.atom.facade
 
 import cats.syntax.either._
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.gu.contentatom.thrift.AtomData.{Media, Profile}
 import com.gu.contentatom.thrift._
 import com.gu.contentatom.thrift.atom.cta.CTAAtom
 import com.gu.contentatom.thrift.atom.explainer._
 import com.gu.contentatom.thrift.atom.interactive.InteractiveAtom
 import com.gu.contentatom.thrift.atom.guide._
-import com.gu.contentatom.thrift.atom.media.{MediaAtom, Metadata, PlutoData, Asset => MediaAsset, PrivacyStatus, Platform, AssetType, Category}
+import com.gu.contentatom.thrift.atom.media.{AssetType, Category, MediaAtom, Metadata, Platform, PlutoData, PrivacyStatus, Asset => MediaAsset}
 import com.gu.contentatom.thrift.atom.profile._
 import com.gu.contentatom.thrift.atom.qanda._
-import com.gu.contentatom.thrift.atom.quiz.{ResultGroup, Asset => QuizAsset, Answer, ResultBucket, ResultBuckets, Question => QQuestion, ResultGroups, QuizContent, QuizAtom}
+import com.gu.contentatom.thrift.atom.quiz.{Answer, QuizAtom, QuizContent, ResultBucket, ResultBuckets, ResultGroup, ResultGroups, Asset => QuizAsset, Question => QQuestion}
 import com.gu.contentatom.thrift.atom.review._
 import com.gu.contentatom.thrift.atom.recipe._
-import com.gu.contentatom.thrift.atom.storyquestions.{StoryQuestionsAtom, QuestionSet, Question => SQuestion, RelatedStoryLinkType}
+import com.gu.contentatom.thrift.atom.storyquestions.{QuestionSet, RelatedStoryLinkType, StoryQuestionsAtom, Question => SQuestion}
 import com.gu.contentatom.thrift.atom.timeline._
 import com.gu.contententity.thrift._
 import com.gu.contententity.thrift.entity.restaurant.Restaurant
@@ -22,8 +23,10 @@ import com.gu.contententity.thrift.entity.film.Film
 import com.gu.contententity.thrift.entity.person.Person
 import com.gu.contententity.thrift.entity.place.Place
 import com.gu.contententity.thrift.entity.organisation.Organisation
-import com.gu.scanamo.DynamoFormat, com.gu.scanamo.error._
-import shapeless._, shapeless.labelled._
+import com.gu.scanamo.DynamoFormat
+import com.gu.scanamo.error._
+import shapeless._
+import shapeless.labelled._
 import shapeless.syntax.singleton._
 
 object AtomFacade {
@@ -1308,5 +1311,78 @@ object AtomFacade {
       r.tail.tail.tail.tail.tail.tail.tail.tail.tail.tail.head,
       r.tail.tail.tail.tail.tail.tail.tail.tail.tail.tail.tail.head
     )
+  }
+
+  /**
+    * AtomData -
+    * The `data` field is a thrift union type (AtomData), which we serialize to e.g.
+    * data: {
+    *   profile: {
+    *     items: []
+    *   }
+    * }
+    *
+    * It is necessary to specify the atom type here, as some types can be indistinguishable.
+    *
+    */
+
+  implicit val atomData = new LabelledGeneric[AtomData] {
+    val t1 = Witness.`'quiz`
+    val t2 = Witness.`'media`
+    val t3 = Witness.`'explainer`
+    val t4 = Witness.`'cta`
+    val t5 = Witness.`'interactive`
+    val t6 = Witness.`'review`
+    val t7 = Witness.`'recipe`
+    val t8 = Witness.`'storyquestions`
+    val t9 = Witness.`'qanda`
+    val t10 = Witness.`'guide`
+    val t11 = Witness.`'profile`
+    val t12 = Witness.`'timeline`
+
+    import com.gu.contentatom.thrift.AtomData._
+    import com.gu.contentatom.thrift.AtomDataAliases._
+
+    type Repr = F[t1.T, Option[QuizAlias]] :: F[t2.T, Option[MediaAlias]] :: F[t3.T, Option[ExplainerAlias]] :: F[t4.T, Option[CtaAlias]] :: F[t5.T, Option[InteractiveAlias]] :: F[t6.T, Option[ReviewAlias]] :: F[t7.T, Option[RecipeAlias]] :: F[t8.T, Option[StoryquestionsAlias]] :: F[t9.T, Option[QandaAlias]] :: F[t10.T, Option[GuideAlias]] :: F[t11.T, Option[ProfileAlias]] :: F[t12.T, Option[TimelineAlias]] :: HNil
+
+    def to(atomData: AtomData): Repr = {
+      atomData match {
+        case Quiz(data) => buildHList(quiz = Some(data))
+        case Media(data) => buildHList(media = Some(data))
+        case Explainer(data) => buildHList(explainer = Some(data))
+        case Cta(data) => buildHList(cta = Some(data))
+        case Interactive(data) => buildHList(interactive = Some(data))
+        case Review(data) => buildHList(review = Some(data))
+        case Recipe(data) => buildHList(recipe = Some(data))
+        case Storyquestions(data) => buildHList(storyquestions = Some(data))
+        case Qanda(data) => buildHList(qanda = Some(data))
+        case Guide(data) => buildHList(guide = Some(data))
+        case Profile(data) => buildHList(profile = Some(data))
+        case Timeline(data) => buildHList(timeline = Some(data))
+      }
+    }
+
+    def from(r: Repr): AtomData = {
+      r match {
+        case quiz :: media :: explainer :: cta :: interactive :: review :: recipe :: storyquestions :: qanda :: guide :: profile :: timeline :: HNil =>
+          quiz.map(Quiz)
+            .orElse(media.map(Media))
+            .orElse(explainer.map(Explainer))
+            .orElse(cta.map(Cta))
+            .orElse(interactive.map(Interactive))
+            .orElse(review.map(Review))
+            .orElse(recipe.map(Recipe))
+            .orElse(storyquestions.map(Storyquestions))
+            .orElse(qanda.map(Qanda))
+            .orElse(guide.map(Guide))
+            .orElse(profile.map(Profile))
+            .orElse(timeline.map(Timeline))
+            .getOrElse(sys.error(s"Error deserializing AtomData, is there a missing atom type in AtomFacade?: $r"))
+      }
+    }
+
+    private def buildHList(quiz: Option[QuizAlias] = Option.empty[QuizAlias], media: Option[MediaAlias] = Option.empty[MediaAlias], explainer: Option[ExplainerAlias] = Option.empty[ExplainerAlias], cta: Option[CtaAlias] = Option.empty[CtaAlias], interactive: Option[InteractiveAlias] = Option.empty[InteractiveAlias], review: Option[ReviewAlias] = Option.empty[ReviewAlias], recipe: Option[RecipeAlias] = Option.empty[RecipeAlias], storyquestions: Option[StoryquestionsAlias] = Option.empty[StoryquestionsAlias], qanda: Option[QandaAlias] = Option.empty[QandaAlias], guide: Option[GuideAlias] = Option.empty[GuideAlias], profile: Option[ProfileAlias] = Option.empty[ProfileAlias], timeline: Option[TimelineAlias] = Option.empty[TimelineAlias]): Repr = {
+      ('quiz ->> quiz) :: ('media ->> media) :: ('explainer ->> explainer) :: ('cta ->> cta) :: ('interactive ->> interactive) :: ('review ->> review) :: ('recipe ->> recipe) :: ('storyquestions ->> storyquestions) :: ('qanda ->> qanda) :: ('guide ->> guide) :: ('profile ->> profile) :: ('timeline ->> timeline) :: HNil
+    }
   }
 }

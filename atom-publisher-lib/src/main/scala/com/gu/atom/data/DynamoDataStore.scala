@@ -18,7 +18,7 @@ import com.gu.scanamo.error.DynamoReadError
 
 abstract class DynamoDataStore
   (dynamo: AmazonDynamoDBClient, tableName: String)
-    extends AtomDataStore with AtomDynamoFormats {
+    extends AtomDataStore {
   import AtomFacade._
   import ThriftDynamoFormat._
 
