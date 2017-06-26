@@ -3,7 +3,8 @@ package com.gu.atom.data
 import cats.syntax.either._
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType._
 import com.gu.atom.TestData._
-import com.gu.atom.util.AtomImplicitsGeneral
+import com.gu.atom.util.{AtomImplicitsGeneral, JsonSupport}
+import com.gu.contentatom.thrift.Atom
 import org.scalatest.{BeforeAndAfterAll, Matchers, OptionValues, fixture}
 
 class DynamoDataStoreSpec
@@ -90,6 +91,44 @@ class DynamoDataStoreSpec
       val key = DynamoCompositeKey(testAtomForDeletion.atomType.toString, Some(testAtomForDeletion.id))
       dataStores.compositeKey.createAtom(key, testAtomForDeletion) should equal(Right(testAtomForDeletion))
       dataStores.compositeKey.deleteAtom(key) should equal(Right(testAtomForDeletion))
+    }
+
+    it("should decode the old format from dynamo") { dataStores =>
+      val json = dataStores.published.parseJson(
+        """
+          |{
+          |  "defaultHtml" : "<div></div>",
+          |  "data" : {
+          |    "assets" : [
+          |      {
+          |        "id" : "xyzzy",
+          |        "version" : 1,
+          |        "platform" : "Youtube",
+          |        "assetType" : "Video"
+          |      },
+          |      {
+          |        "id" : "fizzbuzz",
+          |        "version" : 2,
+          |        "platform" : "Youtube",
+          |        "assetType" : "Video"
+          |      }
+          |    ],
+          |    "activeVersion" : 2,
+          |    "title" : "Test atom 1",
+          |    "category" : "News"
+          |  },
+          |  "contentChangeDetails" : {
+          |    "revision" : 1
+          |  },
+          |  "id" : "1",
+          |  "atomType" : "Media",
+          |  "labels" : [
+          |  ]
+          |}
+        """.stripMargin).toOption.get
+
+      val atom = json.as[Atom](JsonSupport.backwardsCompatibleAtomDecoder)
+      atom should equal(Right(testAtom))
     }
   }
 

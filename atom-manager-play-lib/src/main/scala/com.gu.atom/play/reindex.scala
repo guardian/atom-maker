@@ -130,7 +130,7 @@ class ReindexController @Inject() (
     }
   }
 
-  private def getNewReindexJob(getAtoms: previewDataStore.DataStoreResult[Iterator[Atom]], actor: ActorRef) =
+  private def getNewReindexJob(getAtoms: previewDataStore.DataStoreResult[Seq[Atom]], actor: ActorRef) =
     ApiKeyAction.async { implicit req =>
       getAtoms.fold(
 
