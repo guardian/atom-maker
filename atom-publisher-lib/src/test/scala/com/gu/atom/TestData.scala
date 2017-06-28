@@ -2,8 +2,10 @@ package com.gu.atom
 
 import java.util.Date
 
+import com.gu.contentatom.thrift.AtomType.Profile
 import com.gu.contentatom.thrift.atom.cta.CTAAtom
 import com.gu.contentatom.thrift.atom.media._
+import com.gu.contentatom.thrift.atom.profile.{ProfileAtom, ProfileItem}
 import com.gu.contentatom.thrift.{ContentAtomEvent, _}
 
 object TestData {
@@ -117,6 +119,20 @@ object TestData {
         posterUrl = None,
         description = None,
         metadata = None
+      )
+    ),
+    contentChangeDetails = ContentChangeDetails(revision = 1)
+  )
+
+  val profileAtom = Atom(
+    id = "profile",
+    atomType = AtomType.Profile,
+    defaultHtml = "<div />",
+    data = AtomData.Profile(
+      ProfileAtom(
+        items = List(
+          ProfileItem(body = "test")
+        )
       )
     ),
     contentChangeDetails = ContentChangeDetails(revision = 1)

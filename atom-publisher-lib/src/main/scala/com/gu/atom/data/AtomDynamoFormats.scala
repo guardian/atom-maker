@@ -1,87 +1,123 @@
 package com.gu.atom.data
 
 import cats.syntax.either._
+import cats.data.NonEmptyList
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.gu.atom.facade.AtomFacade
 import com.gu.atom.util.ThriftDynamoFormat
-import com.gu.contentatom.thrift.AtomData
+import com.gu.contentatom.thrift._
 import com.gu.contentatom.thrift.atom.cta.CTAAtom
 import com.gu.contentatom.thrift.atom.explainer.ExplainerAtom
+import com.gu.contentatom.thrift.atom.guide.GuideAtom
 import com.gu.contentatom.thrift.atom.interactive.InteractiveAtom
 import com.gu.contentatom.thrift.atom.media.MediaAtom
+import com.gu.contentatom.thrift.atom.profile.ProfileAtom
+import com.gu.contentatom.thrift.atom.qanda.QAndAAtom
 import com.gu.contentatom.thrift.atom.quiz.QuizAtom
 import com.gu.contentatom.thrift.atom.recipe.RecipeAtom
 import com.gu.contentatom.thrift.atom.review.ReviewAtom
 import com.gu.contentatom.thrift.atom.storyquestions.StoryQuestionsAtom
-import com.gu.contentatom.thrift.atom.qanda.QAndAAtom
-import com.gu.contentatom.thrift.atom.guide.GuideAtom
-import com.gu.contentatom.thrift.atom.profile.ProfileAtom
 import com.gu.contentatom.thrift.atom.timeline.TimelineAtom
-import com.gu.contentatom.thrift.AtomData
 import com.gu.scanamo.DynamoFormat
-import com.gu.scanamo.error.{DynamoReadError, TypeCoercionError}
+import com.gu.scanamo.error.{DynamoReadError, InvalidPropertiesError, MissingProperty, PropertyReadError}
 import com.twitter.scrooge.ThriftStruct
+
+import scala.collection.JavaConverters._
 
 trait AtomDynamoFormats {
   import AtomFacade._
   import ThriftDynamoFormat._
 
-  private def writeAtom[A <: ThriftStruct](atomData: A)(implicit f: ThriftDynamoFormat[A]): AttributeValue = f.write(atomData)
+  implicit val atomFormat: ThriftDynamoFormat[Atom] = new ThriftDynamoFormat[Atom] {
+    override def write(t: Atom): AttributeValue = {
+      val required: Map[String, AttributeValue] = Map(
+        "id" -> writeValue(t.id),
+        "atomType" -> writeValue(t.atomType),
+        "labels" -> writeValue(t.labels),
+        "defaultHtml" -> writeValue(t.defaultHtml),
+        "data" -> writeData(t.data),
+        "contentChangeDetails" -> writeValue(t.contentChangeDetails)
+      )
 
-  private def readAtom[A <: ThriftStruct](av: AttributeValue)(implicit f: ThriftDynamoFormat[A]): Either[DynamoReadError, A] = f.read(av)
+      val optional = List(
+        t.flags.map { flags => "flags" -> writeValue(flags) },
+        t.title.map { title => "title" -> writeValue(title) }
+      ).flatten.toMap
 
-  private val allReaders = List(
-    readAtom[QuizAtom] _,
-    readAtom[MediaAtom] _,
-    readAtom[ExplainerAtom] _,
-    readAtom[CTAAtom] _,
-    readAtom[InteractiveAtom] _,
-    readAtom[ReviewAtom] _,
-    readAtom[RecipeAtom] _,
-    readAtom[StoryQuestionsAtom] _,
-    readAtom[QAndAAtom] _,
-    readAtom[GuideAtom] _,
-    readAtom[ProfileAtom] _,
-    readAtom[TimelineAtom] _
-  )
+      new AttributeValue().withM((required ++ optional).asJava)
+    }
 
-  implicit val dynamoFormat: ThriftDynamoFormat[AtomData] = new ThriftDynamoFormat[AtomData] {
-    def write(t: AtomData) = t match {
-      case AtomData.Quiz(d)            => writeAtom[QuizAtom](d)
-      case AtomData.Media(d)           => writeAtom[MediaAtom](d)
-      case AtomData.Explainer(d)       => writeAtom[ExplainerAtom](d)
-      case AtomData.Cta(d)             => writeAtom[CTAAtom](d)
-      case AtomData.Interactive(d)     => writeAtom[InteractiveAtom](d)
-      case AtomData.Review(d)          => writeAtom[ReviewAtom](d)
-      case AtomData.Recipe(d)          => writeAtom[RecipeAtom](d)
-      case AtomData.Storyquestions(d)  => writeAtom[StoryQuestionsAtom](d)
-      case AtomData.Guide(d)           => writeAtom[GuideAtom](d)
-      case AtomData.Profile(d)         => writeAtom[ProfileAtom](d)
-      case AtomData.Qanda(d)           => writeAtom[QAndAAtom](d)
-      case AtomData.Timeline(d)        => writeAtom[TimelineAtom](d)
+    override def read(av: AttributeValue): Either[DynamoReadError, Atom] = {
+      val attrs = av.getM
+
+      for {
+        id <- readField[String]("id", attrs)
+        atomType <- readField[AtomType]("atomType", attrs)
+        labels <- readField[Seq[String]]("labels", attrs)
+        defaultHtml <- readField[String]("defaultHtml", attrs)
+        data <- readDataField(atomType, attrs)
+        contentChangeDetails <- readField[ContentChangeDetails]("contentChangeDetail", attrs)
+      } yield Atom(
+        id, atomType, labels, defaultHtml, data, contentChangeDetails
+      )
+    }
+
+    private def writeData(t: AtomData): AttributeValue = t match {
+      case AtomData.Quiz(d)            => writeStruct[QuizAtom](d)
+      case AtomData.Media(d)           => writeStruct[MediaAtom](d)
+      case AtomData.Explainer(d)       => writeStruct[ExplainerAtom](d)
+      case AtomData.Cta(d)             => writeStruct[CTAAtom](d)
+      case AtomData.Interactive(d)     => writeStruct[InteractiveAtom](d)
+      case AtomData.Review(d)          => writeStruct[ReviewAtom](d)
+      case AtomData.Recipe(d)          => writeStruct[RecipeAtom](d)
+      case AtomData.Storyquestions(d)  => writeStruct[StoryQuestionsAtom](d)
+      case AtomData.Guide(d)           => writeStruct[GuideAtom](d)
+      case AtomData.Profile(d)         => writeStruct[ProfileAtom](d)
+      case AtomData.Qanda(d)           => writeStruct[QAndAAtom](d)
+      case AtomData.Timeline(d)        => writeStruct[TimelineAtom](d)
       case _                           => throw new RuntimeException("Unknown atom data type found.")
     }
 
-    def read(av: AttributeValue): Either[DynamoReadError, AtomData] = {
-      val zero: Either[DynamoReadError, ThriftStruct] = Either.left(TypeCoercionError(new RuntimeException(s"No dynamo format to read $av")))
-      allReaders.foldLeft(zero) {
-        case (Left(_), reader) => reader(av)
-        case (res, _)          => res
-      }.map {
-        case d: QuizAtom           => AtomData.Quiz(d)
-        case d: MediaAtom          => AtomData.Media(d)
-        case d: ExplainerAtom      => AtomData.Explainer(d)
-        case d: CTAAtom            => AtomData.Cta(d)
-        case d: InteractiveAtom    => AtomData.Interactive(d)
-        case d: ReviewAtom         => AtomData.Review(d)
-        case d: RecipeAtom         => AtomData.Recipe(d)
-        case d: StoryQuestionsAtom => AtomData.Storyquestions(d)
-        case d: GuideAtom          => AtomData.Guide(d)
-        case d: ProfileAtom        => AtomData.Profile(d)
-        case d: QAndAAtom          => AtomData.Qanda(d)
-        case d: TimelineAtom       => AtomData.Timeline(d)
-        case _                     => throw new RuntimeException("Unknown atom data type found.")
+    private def readDataField(atomType: AtomType, attrs: java.util.Map[String, AttributeValue]): Either[DynamoReadError, AtomData] = {
+      if(attrs.containsKey("data")) {
+        val v = attrs.get("data")
+
+        atomType match {
+          case AtomType.Quiz => readStruct[AtomData.Quiz](v)
+          case AtomType.Media => readStruct[AtomData.Media](v)
+          case AtomType.Explainer => readStruct[AtomData.Explainer](v)
+          case AtomType.Cta => readStruct[AtomData.Cta](v)
+          case AtomType.Interactive => readStruct[AtomData.Interactive](v)
+          case AtomType.Review => readStruct[AtomData.Review](v)
+          case AtomType.Recipe => readStruct[AtomData.Recipe](v)
+          case AtomType.Storyquestions => readStruct[AtomData.Storyquestions](v)
+          case AtomType.Guide => readStruct[AtomData.Guide](v)
+          case AtomType.Profile => readStruct[AtomData.Profile](v)
+          case AtomType.Qanda => readStruct[AtomData.Qanda](v)
+          case AtomType.Timeline => readStruct[AtomData.Timeline](v)
+          case _ => throw new RuntimeException("Unknown atom data type found.")
+        }
+      } else {
+        Left(missingProperty("data"))
       }
+    }
+
+    private def readField[T](key: String, attrs: java.util.Map[String, AttributeValue])(implicit fmt: DynamoFormat[T]): Either[DynamoReadError, T] = {
+      if(attrs.containsKey(key)) {
+        fmt.read(attrs.get(key))
+      } else {
+        Left(missingProperty(key))
+      }
+    }
+
+    private def writeValue[A](v: A)(implicit f: DynamoFormat[A]): AttributeValue = f.write(v)
+    private def readValue[A](av: AttributeValue)(implicit f: DynamoFormat[A]): Either[DynamoReadError, A] = f.read(av)
+
+    private def writeStruct[A <: ThriftStruct](v: A)(implicit f: ThriftDynamoFormat[A]): AttributeValue = f.write(v)
+    private def readStruct[A <: ThriftStruct](av: AttributeValue)(implicit f: ThriftDynamoFormat[A]): Either[DynamoReadError, A] = f.read(av)
+
+    private def missingProperty(key: String): DynamoReadError = {
+      InvalidPropertiesError(NonEmptyList.of(PropertyReadError(key, MissingProperty)))
     }
   }
 }

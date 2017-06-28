@@ -24,8 +24,6 @@ abstract class DynamoDataStore
 
   sealed trait DynamoResult
 
-  implicit val atomFormat = implicitly[ThriftDynamoFormat[Atom]]
-
   implicit class DynamoPutResult(res: PutItemResult) extends DynamoResult
 
   // useful shortcuts

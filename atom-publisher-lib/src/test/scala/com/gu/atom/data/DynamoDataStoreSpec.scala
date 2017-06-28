@@ -91,6 +91,11 @@ class DynamoDataStoreSpec
       dataStores.compositeKey.createAtom(key, testAtomForDeletion) should equal(Right(testAtomForDeletion))
       dataStores.compositeKey.deleteAtom(key) should equal(Right(testAtomForDeletion))
     }
+
+    it("should serialise and deserialise profile atoms") { dataStores =>
+      dataStores.preview.createAtom(profileAtom)
+      dataStores.preview.getAtom(profileAtom.id).toOption should contain(profileAtom)
+    }
   }
 
   override def beforeAll() = {
