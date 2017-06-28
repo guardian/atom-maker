@@ -54,7 +54,7 @@ abstract class DynamoDataStore
   private def handleException(e: Exception) = e match {
     case serviceError: AmazonServiceException => DynamoError(serviceError.getErrorMessage)
     case clientError: AmazonClientException => ClientError(clientError.getMessage)
-    case _ => ReadError
+    case other => ReadError(e.getMessage)
   }
 
   private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey) = dynamoCompositeKey match {
@@ -67,7 +67,7 @@ abstract class DynamoDataStore
   def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
     get(uniqueKey(dynamoCompositeKey)) match {
       case Some(Right(atom)) => Right(atom)
-      case Some(Left(error)) => Left(ReadError)
+      case Some(Left(error)) => Left(ReadError(DynamoReadError.describe(error)))
       case None => Left(IDNotFound)
     }
 
@@ -93,7 +93,7 @@ abstract class DynamoDataStore
 
   private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
     Scanamo.scan[Atom](dynamo)(tableName)(atomFormat).sequenceU.leftMap {
-      _ => ReadError
+      err => ReadError(DynamoReadError.describe(err))
     }
 
   def listAtoms: DataStoreResult[Iterator[Atom]] = findAtoms(tableName).map(_.iterator)

@@ -6,7 +6,7 @@ sealed abstract class DataStoreError(val msg: String) extends Exception(msg)
 
 case object IDConflictError extends DataStoreError("Atom ID already exists")
 case object IDNotFound extends DataStoreError("Atom ID not in datastore")
-case object ReadError extends DataStoreError("Read error")
+case class ReadError(info: String) extends DataStoreError(s"Read error $info")
 
 case class  DataError(info: String) extends DataStoreError(info)
 case class  VersionConflictError(requestVer: Long) extends DataStoreError(s"Update has version $requestVer, which is earlier or equal to data store version")
