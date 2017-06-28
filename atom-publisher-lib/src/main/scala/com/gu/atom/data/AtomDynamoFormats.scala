@@ -57,8 +57,11 @@ trait AtomDynamoFormats {
         defaultHtml <- readField[String]("defaultHtml", attrs)
         data <- readDataField(atomType, attrs)
         contentChangeDetails <- readField[ContentChangeDetails]("contentChangeDetails", attrs)
+
+        flags = readField[Flags]("flags", attrs).toOption
+        title = readField[String]("title", attrs).toOption
       } yield Atom(
-        id, atomType, labels, defaultHtml, data, contentChangeDetails
+        id, atomType, labels, defaultHtml, data, contentChangeDetails, flags, title
       )
     }
 
