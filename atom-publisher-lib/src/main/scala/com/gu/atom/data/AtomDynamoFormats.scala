@@ -56,7 +56,7 @@ trait AtomDynamoFormats {
         labels <- readField[Seq[String]]("labels", attrs)
         defaultHtml <- readField[String]("defaultHtml", attrs)
         data <- readDataField(atomType, attrs)
-        contentChangeDetails <- readField[ContentChangeDetails]("contentChangeDetail", attrs)
+        contentChangeDetails <- readField[ContentChangeDetails]("contentChangeDetails", attrs)
       } yield Atom(
         id, atomType, labels, defaultHtml, data, contentChangeDetails
       )
@@ -83,18 +83,18 @@ trait AtomDynamoFormats {
         val v = attrs.get("data")
 
         atomType match {
-          case AtomType.Quiz => readStruct[AtomData.Quiz](v)
-          case AtomType.Media => readStruct[AtomData.Media](v)
-          case AtomType.Explainer => readStruct[AtomData.Explainer](v)
-          case AtomType.Cta => readStruct[AtomData.Cta](v)
-          case AtomType.Interactive => readStruct[AtomData.Interactive](v)
-          case AtomType.Review => readStruct[AtomData.Review](v)
-          case AtomType.Recipe => readStruct[AtomData.Recipe](v)
-          case AtomType.Storyquestions => readStruct[AtomData.Storyquestions](v)
-          case AtomType.Guide => readStruct[AtomData.Guide](v)
-          case AtomType.Profile => readStruct[AtomData.Profile](v)
-          case AtomType.Qanda => readStruct[AtomData.Qanda](v)
-          case AtomType.Timeline => readStruct[AtomData.Timeline](v)
+          case AtomType.Quiz => readStruct[QuizAtom](v).map(AtomData.Quiz)
+          case AtomType.Media => readStruct[MediaAtom](v).map(AtomData.Media)
+          case AtomType.Explainer => readStruct[ExplainerAtom](v).map(AtomData.Explainer)
+          case AtomType.Cta => readStruct[CTAAtom](v).map(AtomData.Cta)
+          case AtomType.Interactive => readStruct[InteractiveAtom](v).map(AtomData.Interactive)
+          case AtomType.Review => readStruct[ReviewAtom](v).map(AtomData.Review)
+          case AtomType.Recipe => readStruct[RecipeAtom](v).map(AtomData.Recipe)
+          case AtomType.Storyquestions => readStruct[StoryQuestionsAtom](v).map(AtomData.Storyquestions)
+          case AtomType.Guide => readStruct[GuideAtom](v).map(AtomData.Guide)
+          case AtomType.Profile => readStruct[ProfileAtom](v).map(AtomData.Profile)
+          case AtomType.Qanda => readStruct[QAndAAtom](v).map(AtomData.Qanda)
+          case AtomType.Timeline => readStruct[TimelineAtom](v).map(AtomData.Timeline)
           case _ => throw new RuntimeException("Unknown atom data type found.")
         }
       } else {
