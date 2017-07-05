@@ -1,104 +1,160 @@
 package com.gu.atom.data
 
-import cats.instances.either._
-import cats.instances.list._
-import cats.syntax.either._
-import cats.syntax.traverse._
+import java.util
+
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.amazonaws.services.dynamodbv2.model.PutItemResult
+import com.amazonaws.services.dynamodbv2.document._
+import com.amazonaws.services.dynamodbv2.model.{ConditionalCheckFailedException, DeleteItemResult}
 import com.amazonaws.{AmazonClientException, AmazonServiceException}
-import com.gu.atom.data.ScanamoUtil._
-import com.gu.atom.facade.AtomFacade
-import com.gu.atom.util.ThriftDynamoFormat
 import com.gu.contentatom.thrift.Atom
-import com.gu.scanamo.DynamoFormat._
-import com.gu.scanamo.query._
-import com.gu.scanamo.{Scanamo, Table}
-import com.gu.scanamo.error.DynamoReadError
+import cats.implicits._
+import cats.syntax.either._
+import io.circe._
+import io.circe.syntax._
+import com.gu.fezziwig.CirceScroogeMacros.{encodeThriftStruct, encodeThriftUnion}
+import com.gu.atom.util.JsonSupport.{backwardsCompatibleAtomDecoder, thriftEnumEncoder}
+
+import collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 abstract class DynamoDataStore
   (dynamo: AmazonDynamoDBClient, tableName: String)
-    extends AtomDataStore with AtomDynamoFormats {
-  import AtomFacade._
-  import ThriftDynamoFormat._
+    extends AtomDataStore {
 
-  sealed trait DynamoResult
+  private val dynamoDB = new DynamoDB(dynamo)
+  private val table = dynamoDB.getTable(tableName)
 
-  implicit val atomFormat = implicitly[ThriftDynamoFormat[Atom]]
+  private val SimpleKeyName = "id"
+  private object CompositeKey {
+    val partitionKey = "atomType"
+    val sortKey = "id"
+  }
 
-  implicit class DynamoPutResult(res: PutItemResult) extends DynamoResult
+  protected def get(key: DynamoCompositeKey): DataStoreResult[Json] = {
+    Try {
+      val result = table.getItem(uniqueKey(key))
+      Option(result)  //null if not found
 
-  // useful shortcuts
-  private def get(key: UniqueKey[_]) =
-    Scanamo.get[Atom](dynamo)(tableName)(key)(atomFormat)
-  private def put(item: Atom) =
-    Scanamo.put[Atom](dynamo)(tableName)(item)(atomFormat)
-  private val delete = Scanamo.delete(dynamo)(tableName) _
-
-  private def exceptionSafePut(atom: Atom): DataStoreResult[Atom] = {
-    try {
-      put(atom)
-      succeed(atom)
-    } catch {
-      case e: Exception => fail(handleException(e))
+    } match {
+      case Success(Some(item)) => parseJson(item.toJSON)
+      case Success(None) => Left(IDNotFound)
+      case Failure(e) => Left(handleException(e))
     }
   }
 
-  private def exceptionSafeDelete(dynamoCompositeKey :DynamoCompositeKey, atom: Atom): DataStoreResult[Atom] = {
-    try {
-      delete(uniqueKey(dynamoCompositeKey))
-      succeed(atom)
-    } catch {
-      case e: Exception => fail(handleException(e))
+  protected def put(json: Json): DataStoreResult[Json] = {
+    Try(table.putItem(jsonToItem(json))) match {
+      case Success(_) => Right(json)
+      case Failure(e) => Left(handleException(e))
     }
   }
 
-  private def handleException(e: Exception) = e match {
-    case serviceError: AmazonServiceException => DynamoError(serviceError.getErrorMessage)
-    case clientError: AmazonClientException => ClientError(clientError.getMessage)
-    case _ => ReadError
+  /**
+    * Conditional put, ensuring passed revision is higher than the value in dynamo
+    */
+  protected def put(json: Json, revision: Long): DataStoreResult[Json] = {
+    val expressionAttributeValues = new util.HashMap[String, Object]()
+    expressionAttributeValues.put(":revision", revision.asInstanceOf[Object])
+
+    Try {
+      table.putItem(
+        jsonToItem(json),
+        "contentChangeDetails.revision < :revision",
+        null,
+        expressionAttributeValues
+      )
+    } match {
+      case Success(_) => Right(json)
+      case Failure(conditionError: ConditionalCheckFailedException) =>
+        Left(VersionConflictError(revision))
+      case Failure(e) => Left(handleException(e))
+    }
+  }
+
+  protected def delete(key: DynamoCompositeKey): DataStoreResult[DeleteItemResult] = {
+    Try {
+      key match {
+        case DynamoCompositeKey(partitionKey, None) =>
+          table.deleteItem(SimpleKeyName, partitionKey)
+        case DynamoCompositeKey(partitionKey, Some(sortKey)) =>
+          table.deleteItem(CompositeKey.partitionKey, partitionKey, CompositeKey.sortKey, sortKey)
+      }
+    } match {
+      case Success(outcome) => Right(outcome.getDeleteItemResult)
+      case Failure(e) => Left(handleException(e))
+    }
+  }
+
+  protected def scan: DataStoreResult[List[Json]] = {
+    Try {
+      table.scan().iterator.asScala.toList
+
+    } match {
+      case Success(items) => items.map(item => parseJson(item.toJSON)).sequenceU
+      case Failure(e) => Left(DynamoError(e.getMessage))
+    }
   }
 
   private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey) = dynamoCompositeKey match {
-    case DynamoCompositeKey(partitionKey, None) => UniqueKey(KeyEquals('id, partitionKey))
-    case DynamoCompositeKey(partitionKey, Some(sortKey)) => UniqueKey(KeyEquals('atomType, partitionKey) and KeyEquals('id, sortKey))
+    case DynamoCompositeKey(partitionKey, None) =>
+      new PrimaryKey(SimpleKeyName, partitionKey)
+    case DynamoCompositeKey(partitionKey, Some(sortKey)) =>
+      new PrimaryKey(CompositeKey.partitionKey, partitionKey, CompositeKey.sortKey, sortKey)
+  }
+
+  def parseJson(s: String): DataStoreResult[Json] =
+    parser.parse(s).leftMap(parsingFailure => DynamoError(parsingFailure.getMessage))
+
+  def jsonToAtom(json: Json): DataStoreResult[Atom] =
+    json.as[Atom](backwardsCompatibleAtomDecoder).leftMap(error => DecoderError(error.message))
+
+  def jsonToItem(json: Json): Item = {
+    val item = new Item()
+    json.asObject.foreach { obj =>
+      obj.toMap.map { case (key, value) => item.withJSON(key, value.noSpaces) }
+    }
+    item
+  }
+
+  private def handleException(e: Throwable) = e match {
+    case serviceError: AmazonServiceException => DynamoError(serviceError.getErrorMessage)
+    case clientError: AmazonClientException => ClientError(clientError.getMessage)
+    case other => ReadError
   }
 
   def getAtom(id: String): DataStoreResult[Atom] = getAtom(DynamoCompositeKey(id))
 
   def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
-    get(uniqueKey(dynamoCompositeKey)) match {
-      case Some(Right(atom)) => Right(atom)
-      case Some(Left(error)) => Left(ReadError)
-      case None => Left(IDNotFound)
-    }
+    get(dynamoCompositeKey) flatMap jsonToAtom
 
   def createAtom(atom: Atom): DataStoreResult[Atom] = createAtom(DynamoCompositeKey(atom.id), atom)
 
-  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom] =
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom] = {
     getAtom(dynamoCompositeKey) match {
-      case Right(atom) =>
-        fail(IDConflictError)
+      case Right(_) =>
+        Left(IDConflictError)
       case Left(error) =>
-        exceptionSafePut(atom)
+        put(atom.asJson).map(_ => atom)
     }
+  }
 
   def deleteAtom(id: String): DataStoreResult[Atom] = deleteAtom(DynamoCompositeKey(id))
 
   def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
-    getAtom(dynamoCompositeKey) match {
-      case Right(atom) =>
-        exceptionSafeDelete(dynamoCompositeKey, atom)
-      case Left(error) =>
-        fail(error)
+    getAtom(dynamoCompositeKey).flatMap { atom =>
+      delete(dynamoCompositeKey).map(_ => atom)
     }
 
-  private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
-    Scanamo.scan[Atom](dynamo)(tableName)(atomFormat).sequenceU.leftMap {
-      _ => ReadError
+  private def findAtoms(tableName: String): DataStoreResult[List[Atom]] = {
+    scan.flatMap { jsonItems =>
+      val atomDecoderResults = jsonItems.map { json =>
+        jsonToAtom(json)
+      }
+      atomDecoderResults.sequenceU
     }
+  }
 
-  def listAtoms: DataStoreResult[Iterator[Atom]] = findAtoms(tableName).map(_.iterator)
+  def listAtoms: DataStoreResult[List[Atom]] = findAtoms(tableName)
 
 }
 
@@ -107,14 +163,8 @@ class PreviewDynamoDataStore
   extends DynamoDataStore(dynamo, tableName)
   with PreviewDataStore {
 
-  def updateAtom(newAtom: Atom) = {
-    val validationCheck = NestedKeyIs(
-      List('contentChangeDetails, 'revision), LT, newAtom.contentChangeDetails.revision
-    )
-    val res = Scanamo.exec(dynamo)(Table[Atom](tableName)(atomFormat).given(validationCheck).put(newAtom))
-    res.fold(_ => Left(VersionConflictError(newAtom.contentChangeDetails.revision)), _ => Right(newAtom))
-  }
-
+  def updateAtom(newAtom: Atom) =
+    put(newAtom.asJson, newAtom.contentChangeDetails.revision).map(_ => newAtom)
 }
 
 class PublishedDynamoDataStore
@@ -122,8 +172,5 @@ class PublishedDynamoDataStore
   extends DynamoDataStore(dynamo, tableName)
   with PublishedDataStore {
 
-  def updateAtom(newAtom: Atom) = {
-    Scanamo.exec(dynamo)(Table[Atom](tableName)(atomFormat).put(newAtom))
-    succeed(newAtom)
-  }
+  def updateAtom(newAtom: Atom) = put(newAtom.asJson).map(_ => newAtom)
 }
