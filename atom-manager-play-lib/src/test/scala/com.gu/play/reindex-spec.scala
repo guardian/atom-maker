@@ -4,15 +4,15 @@ import com.gu.atom.play.ReindexController
 import com.gu.atom.publish._
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.test.FakeRequest
+import play.api.test.{ FakeApplication, FakeRequest }
 import play.api.test.Helpers._
 import org.scalatest.mock.MockitoSugar.mock
+import org.scalatestplus.play.OneAppPerTest
 
-class ReindexSpec extends AtomSuite {
+class ReindexSpec extends AtomSuite with OneAppPerTest {
 
-  override implicit lazy val app = play.api.test.FakeApplication(
-    additionalConfiguration = Map("reindexApiKey" -> "xyzzy")
-  )
+  override def newAppForTest(td: org.scalatest.TestData) =
+    FakeApplication(additionalConfiguration = Map("reindexApiKey" -> "xyzzy"))
 
   def mockReindexer[T <: AtomReindexer : Manifest]: T = {
     val r = mock[T]
@@ -20,9 +20,9 @@ class ReindexSpec extends AtomSuite {
     r
   }
 
-  val publishedAtomReindexer = mockReindexer[PublishedAtomReindexer]
+  lazy val publishedAtomReindexer = mockReindexer[PublishedAtomReindexer]
 
-  val previewAtomReindexer = mockReindexer[PreviewAtomReindexer]
+  lazy val previewAtomReindexer = mockReindexer[PreviewAtomReindexer]
 
   lazy val reindexCtrl = new ReindexController(
     initialPreviewDataStore,
@@ -31,17 +31,6 @@ class ReindexSpec extends AtomSuite {
     publishedAtomReindexer,
     app.configuration,
     app.actorSystem)
-
-  // override def customOverrides = {
-
-  //   super.customOverrides :+ mbind[PublishedAtomReindexer] { (r: AtomReindexer) =>
-  //     when(r.startReindexJob(any(), any())).thenReturn(AtomReindexJob.empty)
-  //   } :+ mbind[PreviewAtomReindexer] { (r: AtomReindexer) =>
-  //     when(r.startReindexJob(any(), any())).thenReturn(AtomReindexJob.empty)
-  //   }
-
-  // }
-  // override def customConfig = super.customConfig + ("reindexApiKey" -> reindexApiKey)
 
   "preview reindex api" should {
     "deny access without api key or with incorrect key" in {

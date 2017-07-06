@@ -12,8 +12,9 @@ import org.scalatest.Inside
 import play.api.mvc.Controller
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import org.scalatestplus.play.OneAppPerTest
 
-class AtomAPIActionsSpec extends AtomSuite with Inside {
+class AtomAPIActionsSpec extends AtomSuite with OneAppPerTest with Inside {
 
   override def initialLivePublisher = defaultMockPublisher
 
@@ -23,25 +24,27 @@ class AtomAPIActionsSpec extends AtomSuite with Inside {
     m
   }
 
-  def apiActions(implicit conf: AtomTestConf) = new Controller with AtomAPIActions {
-    val livePublisher = conf.livePublisher
-    val previewPublisher = conf.previewPublisher
-    val previewDataStore = conf.previewDataStore
-    val publishedDataStore = conf.publishedDataStore
+  def makeApiActions = new Controller with AtomAPIActions {
+    val livePublisher = initialLivePublisher
+    val previewPublisher = initialPreviewPublisher
+    val previewDataStore = initialPreviewDataStore
+    val publishedDataStore = initialPublishedDataStore
   }
 
   "api publish action" should {
-    "succeed with NO_CONTENT" in AtomTestConf() { implicit conf =>
+    "succeed with NO_CONTENT" in {
+      val apiActions = makeApiActions
       val result = call(apiActions.publishAtom("1"), FakeRequest())
       status(result) mustEqual NO_CONTENT
     }
 
-    "update publish time and version for atom" in AtomTestConf() { implicit conf =>
+    "update publish time and version for atom" in {
+      val apiActions = makeApiActions
       val startTime = new Date().getTime
       val atomCaptor = ArgumentCaptor.forClass(classOf[Atom])
       val result = call(apiActions.publishAtom("1"), FakeRequest())
       status(result) mustEqual NO_CONTENT
-      verify(conf.publishedDataStore).updateAtom(atomCaptor.capture())
+      verify(apiActions.publishedDataStore).updateAtom(atomCaptor.capture())
       
       inside(atomCaptor.getValue) {
         case Atom("1", _, _, _, _, changeDetails, _, _) => {

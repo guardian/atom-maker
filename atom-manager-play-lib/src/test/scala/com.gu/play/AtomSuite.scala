@@ -14,9 +14,10 @@ import scala.collection.mutable.{Map => MMap}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success}
 
-trait AtomSuite extends PlaySpec with GuiceableModuleConversions with org.scalatestplus.play.OneAppPerSuite {
+trait AtomSuite extends PlaySpec with GuiceableModuleConversions {
 
-  def dataStore = mock[DataStore]
+  // e.g., provide this by mixing in OneAppPerSuite or similar
+  implicit def app: play.api.Application
 
   def previewDataStoreMockWithTestData = {
     val m = mock[PreviewDataStore]
@@ -77,7 +78,6 @@ trait AtomSuite extends PlaySpec with GuiceableModuleConversions with org.scalat
     shutDownHook: AtomTestConf => Unit = _.app.stop) {
 
     private def makeOverrides: GuiceableModule = Seq(
-      ibind(dataStore),
       ibind(previewDataStore),
       ibind(publishedDataStore),
       ibind(livePublisher),
@@ -102,6 +102,6 @@ trait AtomSuite extends PlaySpec with GuiceableModuleConversions with org.scalat
       }
   }
 
-  implicit def app(implicit atomConf: AtomTestConf) = atomConf.app
-  implicit def materializer(implicit atomConf: AtomTestConf) = app.materializer
+  //implicit def app(implicit atomConf: AtomTestConf) = atomConf.app
+  implicit def materializer = app.materializer
 }
