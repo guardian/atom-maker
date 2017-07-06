@@ -32,8 +32,6 @@ class ReindexSpec extends AtomSuite {
     app.configuration,
     app.actorSystem)
 
-  val reindexApiKey = "xyzzy"
-
   // override def customOverrides = {
 
   //   super.customOverrides :+ mbind[PublishedAtomReindexer] { (r: AtomReindexer) =>
