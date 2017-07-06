@@ -14,7 +14,7 @@ import scala.collection.mutable.{Map => MMap}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success}
 
-trait AtomSuite extends PlaySpec with GuiceableModuleConversions {
+trait AtomSuite extends PlaySpec with GuiceableModuleConversions with org.scalatestplus.play.OneAppPerSuite {
 
   def dataStore = mock[DataStore]
 
