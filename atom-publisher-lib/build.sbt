@@ -10,7 +10,7 @@ Sonatype.sonatypeSettings
 name := "atom-publisher-lib"
 
 organization := "com.gu"
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.11"
 
 // for testing dynamodb access
 dynamoDBLocalDownloadDir := file(".dynamodb-local")
