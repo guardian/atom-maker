@@ -44,7 +44,7 @@ class AtomAPIActionsSpec extends AtomSuite with Inside {
       verify(conf.publishedDataStore).updateAtom(atomCaptor.capture())
       
       inside(atomCaptor.getValue) {
-        case Atom("1", _, _, _, _, changeDetails, _, _) => {
+        case Atom("1", _, _, _, _, changeDetails, _, _, _) => {
           changeDetails.published.value.date must be >= startTime
           changeDetails.revision mustEqual 2
         }
