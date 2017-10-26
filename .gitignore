@@ -4,3 +4,4 @@ target/
 .dynamodb-local
 public/dist
 .ensime*
+.DS_Store
