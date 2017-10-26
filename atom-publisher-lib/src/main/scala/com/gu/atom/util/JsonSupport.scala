@@ -56,7 +56,6 @@ object JsonSupport {
     */
   val backwardsCompatibleAtomDecoder: Decoder[Atom] = new Decoder[Atom] {
     final def apply(c: HCursor): Decoder.Result[Atom] = {
-
       val result: Option[Decoder.Result[Atom]] = for {
         topLevelObj <- c.value.asObject
         atomTypeJson <- topLevelObj("atomType")
