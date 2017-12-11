@@ -66,7 +66,8 @@ object JsonSupport {
         val fixedJson = {
           val nestedDataFieldName = atomType.toLowerCase
 
-          if (data(nestedDataFieldName).nonEmpty) c.value
+          //Special case for commonsDivision because the scrooge enum value loses the casing
+          if (data(nestedDataFieldName).nonEmpty || nestedDataFieldName == "commonsdivision") c.value
           else {
             //Add the union type name under `data`
             val newData = JsonObject.fromIterable(Seq(nestedDataFieldName -> dataJson))
