@@ -25,7 +25,7 @@ dependencyOverrides += "com.twitter" %% "scrooge-serializer" % scroogeVersion
 libraryDependencies ++= Seq(
   "org.typelevel"              %% "cats-core"            % "0.9.0",
   "io.circe"                   %% "circe-parser"         % "0.8.0",
-  "com.gu"                     %% "fezziwig"             % "0.4",
+  "com.gu"                     %% "fezziwig"             % "1.1",
   "com.gu"                     %% "content-atom-model"   % contentAtomVersion,
   "com.amazonaws"              %  "aws-java-sdk-kinesis" % awsVersion,
   "com.typesafe.scala-logging" %% "scala-logging"        % "3.4.0",
