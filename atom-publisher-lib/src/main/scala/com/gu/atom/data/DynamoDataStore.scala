@@ -145,14 +145,8 @@ abstract class DynamoDataStore
       delete(dynamoCompositeKey).map(_ => atom)
     }
 
-  private def findAtoms(tableName: String): DataStoreResult[List[Atom]] = {
-    scan.flatMap { jsonItems =>
-      val atomDecoderResults = jsonItems.map { json =>
-        jsonToAtom(json)
-      }
-      atomDecoderResults.sequence
-    }
-  }
+  private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
+    scan.flatMap(_.traverse(jsonToAtom))
 
   def listAtoms: DataStoreResult[List[Atom]] = findAtoms(tableName)
 
