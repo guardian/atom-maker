@@ -90,7 +90,7 @@ abstract class DynamoDataStore
       table.scan().iterator.asScala.toList
 
     } match {
-      case Success(items) => items.map(item => parseJson(item.toJSON)).sequenceU
+      case Success(items) => items.traverse(item => parseJson(item.toJSON))
       case Failure(e) => Left(DynamoError(e.getMessage))
     }
   }
@@ -150,7 +150,7 @@ abstract class DynamoDataStore
       val atomDecoderResults = jsonItems.map { json =>
         jsonToAtom(json)
       }
-      atomDecoderResults.sequenceU
+      atomDecoderResults.sequence
     }
   }
 
