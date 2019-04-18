@@ -90,7 +90,7 @@ abstract class DynamoDataStore
       table.scan().iterator.asScala.toList
 
     } match {
-      case Success(items) => items.map(item => parseJson(item.toJSON)).sequenceU
+      case Success(items) => items.traverse(item => parseJson(item.toJSON))
       case Failure(e) => Left(DynamoError(e.getMessage))
     }
   }
@@ -145,14 +145,8 @@ abstract class DynamoDataStore
       delete(dynamoCompositeKey).map(_ => atom)
     }
 
-  private def findAtoms(tableName: String): DataStoreResult[List[Atom]] = {
-    scan.flatMap { jsonItems =>
-      val atomDecoderResults = jsonItems.map { json =>
-        jsonToAtom(json)
-      }
-      atomDecoderResults.sequenceU
-    }
-  }
+  private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
+    scan.flatMap(_.traverse(jsonToAtom))
 
   def listAtoms: DataStoreResult[List[Atom]] = findAtoms(tableName)
 
