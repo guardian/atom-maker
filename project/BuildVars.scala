@@ -9,7 +9,7 @@ object BuildVars {
   lazy val mockitoVersion     = "2.0.97-beta"
 
   lazy val scanamoDeps = Seq(
-    "com.gu"                     %% "scanamo"          % "0.9.1",
-    "com.gu"                     %% "scanamo-scrooge"  % "0.2.0"
+    "org.scanamo" %% "scanamo" % "1.0.0-M9",
+    "com.gu" %% "scanamo-scrooge" % "0.2.0"
   )
 }
