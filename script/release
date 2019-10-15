@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+echo 'Releasing a new version of atom-maker, it will take a while - go get a coffee!'
+
+sbt release
+
+echo '✅ Done'
