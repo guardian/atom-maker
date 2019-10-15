@@ -174,3 +174,5 @@ In your routes file:
 POST    /api/atom/:id/publish           controllers.MyAtomController.publishAtom(id)
 ```
 
+## Releasing a new version
+Run `./script/release` from the project root.
