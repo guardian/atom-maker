@@ -17,9 +17,9 @@ import com.gu.atom.util.JsonSupport.{backwardsCompatibleAtomDecoder, thriftEnumE
 import collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
-object AtomSerialiser {
+object AtomSerializer {
 
-  def toJson(newAtom: Atom): Json = toJson(newAtom)
+  def toJson(newAtom: Atom): Json = newAtom.asJson
 }
 
 abstract class DynamoDataStore
@@ -35,7 +35,7 @@ abstract class DynamoDataStore
     val sortKey = "id"
   }
 
-  import AtomSerialiser._
+  import AtomSerializer._
 
   protected def get(key: DynamoCompositeKey): DataStoreResult[Json] = {
     Try {
@@ -164,7 +164,7 @@ class PreviewDynamoDataStore
   extends DynamoDataStore(dynamo, tableName)
   with PreviewDataStore {
 
-  import AtomSerialiser._
+  import AtomSerializer._
 
   def updateAtom(newAtom: Atom) =
     put(toJson(newAtom), newAtom.contentChangeDetails.revision).map(_ => newAtom)
@@ -175,7 +175,7 @@ class PublishedDynamoDataStore
   extends DynamoDataStore(dynamo, tableName)
   with PublishedDataStore {
 
-  import AtomSerialiser._
+  import AtomSerializer._
 
   def updateAtom(newAtom: Atom) = put(toJson(newAtom)).map(_ => newAtom)
 }
