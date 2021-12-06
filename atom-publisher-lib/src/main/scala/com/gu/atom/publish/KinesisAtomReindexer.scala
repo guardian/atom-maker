@@ -11,13 +11,13 @@ class KinesisAtomReindexer(
     extends AtomReindexer
     with ThriftSerializer[ContentAtomEvent] {
 
-  def makeParititionKey(event: ContentAtomEvent): String = event.atom.atomType.name
+  def makePartitionKey(event: ContentAtomEvent): String = event.atom.atomType.name
 
   def startReindexJob(atomEventsToReindex: Iterator[ContentAtomEvent], expectedSize: Int) =
     new AtomReindexJob(atomEventsToReindex, expectedSize) {
       def execute(implicit ec: ExecutionContext) = Future {
         atomEventsToReindex foreach { atomEvent =>
-          kinesis.putRecord(streamName, serializeEvent(atomEvent), makeParititionKey(atomEvent))
+          kinesis.putRecord(streamName, serializeEvent(atomEvent), makePartitionKey(atomEvent))
           _completedCount += 1
         }
         _isComplete = true

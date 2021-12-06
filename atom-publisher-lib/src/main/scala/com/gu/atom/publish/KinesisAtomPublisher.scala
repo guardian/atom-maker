@@ -12,13 +12,13 @@ class KinesisAtomPublisher (val streamName: String, val kinesis: AmazonKinesisCl
     with LazyLogging
 {
 
-  logger.info(s"KinsisAtomPublisher started with streamName $streamName")
+  logger.info(s"KinesisAtomPublisher started with streamName $streamName")
 
-  def makeParititionKey(event: ContentAtomEvent): String = event.atom.atomType.name
+  def makePartitionKey(event: ContentAtomEvent): String = event.atom.atomType.name
 
   def publishAtomEvent(event: ContentAtomEvent): Try[Unit] = Try {
       val data = serializeEvent(event)
-      kinesis.putRecord(streamName, data, makeParititionKey(event))
+      kinesis.putRecord(streamName, data, makePartitionKey(event))
     }
 }
 
