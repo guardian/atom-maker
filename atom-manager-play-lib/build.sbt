@@ -11,5 +11,7 @@ libraryDependencies ++= Seq(
   "com.gu"                 %% "content-atom-model"    % contentAtomVersion,
   "org.scalatestplus.play" %% "scalatestplus-play"    % "1.5.0"   % "test",
   "com.amazonaws"          %  "aws-java-sdk-dynamodb" % awsVersion,
-  "org.mockito"            %  "mockito-core"          % mockitoVersion % "test"
+  "org.mockito"            %  "mockito-core"          % mockitoVersion % "test",
+  "com.typesafe.play"      %% "play-test"             % "2.6.0" % Test,
+  guice
 )

@@ -14,9 +14,9 @@ scalaVersion := "2.11.11"
 
 // for testing dynamodb access
 dynamoDBLocalDownloadDir := file(".dynamodb-local")
-startDynamoDBLocal <<= startDynamoDBLocal.dependsOn(compile in Test)
-test in Test <<= (test in Test).dependsOn(startDynamoDBLocal)
-testOptions in Test <+= dynamoDBLocalTestCleanup
+startDynamoDBLocal := startDynamoDBLocal.dependsOn(compile in Test).value
+test in Test := (test in Test).dependsOn(startDynamoDBLocal)
+testOptions in Test += dynamoDBLocalTestCleanup.value
 
 dependencyOverrides += "org.apache.thrift" % "libthrift" % "0.10.0"
 dependencyOverrides += "com.twitter" %% "scrooge-core" % scroogeVersion

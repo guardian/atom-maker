@@ -11,7 +11,7 @@ import play.api.mvc._
 
 import scala.util.{Failure, Success}
 
-trait AtomAPIActions extends Controller {
+trait AtomAPIActions extends BaseController {
 
   val livePublisher: LiveAtomPublisher
   val previewPublisher: PreviewAtomPublisher
