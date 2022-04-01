@@ -1,13 +1,13 @@
 package com.gu.atom.publish
 
-import com.amazonaws.services.kinesis.AmazonKinesisClient
+import com.amazonaws.services.kinesis.AmazonKinesis
 import com.gu.contentatom.thrift.ContentAtomEvent
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class KinesisAtomReindexer(
   streamName: String,
-  kinesis: AmazonKinesisClient)
+  kinesis: AmazonKinesis)
     extends AtomReindexer
     with ThriftSerializer[ContentAtomEvent] {
 
@@ -27,11 +27,11 @@ class KinesisAtomReindexer(
 }
 
 class PreviewKinesisAtomReindexer( val streamName: String,
-                                   val kinesis: AmazonKinesisClient)
+                                   val kinesis: AmazonKinesis)
   extends KinesisAtomReindexer(streamName, kinesis) with PreviewAtomReindexer
 
 class PublishedKinesisAtomReindexer( val streamName: String,
-                                     val kinesis: AmazonKinesisClient)
+                                     val kinesis: AmazonKinesis)
   extends KinesisAtomReindexer(streamName, kinesis) with PublishedAtomReindexer
 
  
