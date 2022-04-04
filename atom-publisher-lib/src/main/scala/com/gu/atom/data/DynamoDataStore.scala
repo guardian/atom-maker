@@ -2,7 +2,7 @@ package com.gu.atom.data
 
 import java.util
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.document._
 import com.amazonaws.services.dynamodbv2.model.{ConditionalCheckFailedException, DeleteItemResult}
 import com.amazonaws.{AmazonClientException, AmazonServiceException}
@@ -23,7 +23,7 @@ object AtomSerializer {
 }
 
 abstract class DynamoDataStore
-  (dynamo: AmazonDynamoDBClient, tableName: String)
+  (dynamo: AmazonDynamoDB, tableName: String)
     extends AtomDataStore {
 
   private val dynamoDB = new DynamoDB(dynamo)
@@ -160,7 +160,7 @@ abstract class DynamoDataStore
 }
 
 class PreviewDynamoDataStore
-(dynamo: AmazonDynamoDBClient, tableName: String)
+(dynamo: AmazonDynamoDB, tableName: String)
   extends DynamoDataStore(dynamo, tableName)
   with PreviewDataStore {
 
@@ -171,7 +171,7 @@ class PreviewDynamoDataStore
 }
 
 class PublishedDynamoDataStore
-(dynamo: AmazonDynamoDBClient, tableName: String)
+(dynamo: AmazonDynamoDB, tableName: String)
   extends DynamoDataStore(dynamo, tableName)
   with PublishedDataStore {
 

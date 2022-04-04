@@ -1,7 +1,6 @@
 package com.gu.atom.play.test
 
 import java.util.Date
-
 import com.gu.atom.TestData._
 import com.gu.atom.play._
 import com.gu.contentatom.thrift._
@@ -9,7 +8,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.Inside
-import play.api.mvc.Controller
+import play.api.mvc.{AbstractController, BaseController}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
@@ -23,7 +22,7 @@ class AtomAPIActionsSpec extends AtomSuite with Inside {
     m
   }
 
-  def apiActions(implicit conf: AtomTestConf) = new Controller with AtomAPIActions {
+  def apiActions(implicit conf: AtomTestConf) = new AbstractController(stubControllerComponents()) with AtomAPIActions {
     val livePublisher = conf.livePublisher
     val previewPublisher = conf.previewPublisher
     val previewDataStore = conf.previewDataStore

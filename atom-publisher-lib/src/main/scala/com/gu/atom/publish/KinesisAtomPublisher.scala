@@ -1,12 +1,12 @@
 package com.gu.atom.publish
 
-import com.amazonaws.services.kinesis.AmazonKinesisClient
+import com.amazonaws.services.kinesis.AmazonKinesis
 import com.gu.contentatom.thrift.ContentAtomEvent
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.util.Try
 
-class KinesisAtomPublisher (val streamName: String, val kinesis: AmazonKinesisClient)
+class KinesisAtomPublisher (val streamName: String, val kinesis: AmazonKinesis)
     extends AtomPublisher
     with ThriftSerializer[ContentAtomEvent]
     with LazyLogging
@@ -23,9 +23,9 @@ class KinesisAtomPublisher (val streamName: String, val kinesis: AmazonKinesisCl
 }
 
 class PreviewKinesisAtomPublisher(override val streamName: String,
-                                  override val kinesis: AmazonKinesisClient)
+                                  override val kinesis: AmazonKinesis)
   extends KinesisAtomPublisher(streamName, kinesis) with PreviewAtomPublisher
 
 class LiveKinesisAtomPublisher(override val streamName: String,
-                                  override val kinesis: AmazonKinesisClient)
+                                  override val kinesis: AmazonKinesis)
   extends KinesisAtomPublisher(streamName, kinesis) with LiveAtomPublisher

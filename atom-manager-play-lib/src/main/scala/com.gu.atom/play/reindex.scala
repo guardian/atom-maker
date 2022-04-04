@@ -2,7 +2,6 @@ package com.gu.atom.play
 
 import java.util.Date
 import javax.inject.{Inject, Singleton}
-
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
@@ -14,7 +13,7 @@ import play.api.Configuration
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 /*
@@ -92,7 +91,8 @@ class ReindexController @Inject() (
                                    previewReindexer: PreviewAtomReindexer,
                                    publishedReindexer: PublishedAtomReindexer,
                                    config: Configuration,
-                                   system: ActorSystem) extends Controller {
+                                   val controllerComponents: ControllerComponents,
+                                   system: ActorSystem) extends BaseController {
 
   def now() = new Date().getTime
 
@@ -105,7 +105,7 @@ class ReindexController @Inject() (
 
   implicit val statusWrites = Json.writes[JobStatus]
 
-  object ApiKeyAction extends ActionBuilder[Request] {
+  object ApiKeyAction extends ActionBuilder[Request, AnyContent] {
     lazy val apiKey = config.getString("reindexApiKey").get
 
     def invokeBlock[A](request: Request[A], block: (Request[A] => Future[Result])) = {
@@ -114,6 +114,10 @@ class ReindexController @Inject() (
       else
         Future.successful(Unauthorized(""))
     }
+
+    override def parser: BodyParser[AnyContent] = controllerComponents.parsers.defaultBodyParser
+
+    override protected def executionContext: ExecutionContext = controllerComponents.executionContext
   }
 
   def newPreviewReindexJob = getNewReindexJob(previewDataStore.listAtoms, previewReindexActor)
