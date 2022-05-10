@@ -1,16 +1,6 @@
 import BuildVars._
-import com.typesafe.sbt.SbtPgp.autoImportImpl._
-import sbtrelease._
-
-import ReleaseStateTransformations._
-
-
-Sonatype.sonatypeSettings
 
 name := "atom-publisher-lib"
-
-organization := "com.gu"
-scalaVersion := "2.11.11"
 
 // for testing dynamodb access
 dynamoDBLocalDownloadDir := file(".dynamodb-local")
@@ -28,11 +18,11 @@ libraryDependencies ++= Seq(
   "com.gu"                     %% "fezziwig"             % "1.1",
   "com.gu"                     %% "content-atom-model"   % contentAtomVersion,
   "com.amazonaws"              %  "aws-java-sdk-kinesis" % awsVersion,
-  "com.typesafe.scala-logging" %% "scala-logging"        % "3.4.0",
+  "com.typesafe.scala-logging" %% "scala-logging"        % "3.9.5",
   "com.twitter"                %% "scrooge-serializer"   % scroogeVersion,
   "com.twitter"                %% "scrooge-core"         % scroogeVersion,
   "com.typesafe.akka"          %% "akka-actor"           % akkaVersion,
   "org.mockito"                %  "mockito-core"         % mockitoVersion % "test",
-  "org.scalatest"              %% "scalatest"            % "2.2.6" % "test",
+  "org.scalatest"              %% "scalatest"            % "3.0.0" % "test",
   "com.typesafe.akka"          %% "akka-testkit"         % akkaVersion % "test"
 ) ++  scanamoDeps
