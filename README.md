@@ -2,10 +2,10 @@
 
 This repository contains two libraries for creating, publishing and managing content atoms.
 
-You should first define your new content atom model by adding it [here] (https://github.com/guardian/content-atom).
+You should first define your new content atom model by adding it [here](https://github.com/guardian/content-atom).
 For the atoms to appear in capi you will also have to make necessary changes to capi (this process will be simplified and documented soon).
 
-An example of a project that uses these libraries to manage atoms can be found [here] (https://github.com/guardian/media-atom-maker).
+An example of a project that uses these libraries to manage atoms can be found [here](https://github.com/guardian/media-atom-maker).
 
 ## Atom-publisher-lib ![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gu/atom-publisher-lib_2.11/badge.svg)
 - Provides that traits you an inject in your application
