@@ -1,13 +1,11 @@
-import com.typesafe.sbt.SbtPgp.autoImportImpl._
-import sbtrelease._
-
-import ReleaseStateTransformations._
+import ReleaseTransformations._
+import xerial.sbt.Sonatype._
 
 name := "atom-maker-lib"
 
 lazy val baseSettings = Seq(
   organization := "com.gu",
-  scalaVersion := "2.11.12",
+  scalaVersion := "2.12.16",
   licenses := Seq("Apache V2" -> url("http://www.apache.org/licenses/LICENSE-2.0.html")),
   scmInfo := Some(ScmInfo(url("https://github.com/guardian/atom-maker"),
     "scm:git:git@github.com:guardian/atom-maker.git"))

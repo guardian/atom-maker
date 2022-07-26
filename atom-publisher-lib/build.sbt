@@ -1,8 +1,6 @@
 import BuildVars._
-import com.typesafe.sbt.SbtPgp.autoImportImpl._
 import sbtrelease._
-
-import ReleaseStateTransformations._
+import ReleaseTransformations._
 
 
 Sonatype.sonatypeSettings
@@ -10,7 +8,7 @@ Sonatype.sonatypeSettings
 name := "atom-publisher-lib"
 
 organization := "com.gu"
-scalaVersion := "2.11.11"
+scalaVersion := "2.12.16"
 
 // for testing dynamodb access
 dynamoDBLocalDownloadDir := file(".dynamodb-local")
@@ -21,6 +19,9 @@ testOptions in Test += dynamoDBLocalTestCleanup.value
 dependencyOverrides += "org.apache.thrift" % "libthrift" % "0.10.0"
 dependencyOverrides += "com.twitter" %% "scrooge-core" % scroogeVersion
 dependencyOverrides += "com.twitter" %% "scrooge-serializer" % scroogeVersion
+// Necessary because of a conflict between catz, imported by scanamo 1.0.0M9, and scanamo-scrooge
+dependencyOverrides += "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.4"
+
 
 libraryDependencies ++= Seq(
   "org.typelevel"              %% "cats-core"            % "1.5.0",
@@ -28,11 +29,11 @@ libraryDependencies ++= Seq(
   "com.gu"                     %% "fezziwig"             % "1.1",
   "com.gu"                     %% "content-atom-model"   % contentAtomVersion,
   "com.amazonaws"              %  "aws-java-sdk-kinesis" % awsVersion,
-  "com.typesafe.scala-logging" %% "scala-logging"        % "3.4.0",
+  "com.typesafe.scala-logging" %% "scala-logging"        % "3.5.0",
   "com.twitter"                %% "scrooge-serializer"   % scroogeVersion,
   "com.twitter"                %% "scrooge-core"         % scroogeVersion,
   "com.typesafe.akka"          %% "akka-actor"           % akkaVersion,
-  "org.mockito"                %  "mockito-core"         % mockitoVersion % "test",
-  "org.scalatest"              %% "scalatest"            % "2.2.6" % "test",
+  "org.scalatest"              %% "scalatest"            % "3.2.12" % "test",
+  "org.scalatestplus" %% "mockito-4-5" % "3.2.12.0" % "test",
   "com.typesafe.akka"          %% "akka-testkit"         % akkaVersion % "test"
 ) ++  scanamoDeps
