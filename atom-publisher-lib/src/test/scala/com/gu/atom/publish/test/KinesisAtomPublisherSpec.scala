@@ -1,19 +1,19 @@
 package com.gu.atom.publish.test
 
 import java.nio.ByteBuffer
-
 import com.amazonaws.services.kinesis.AmazonKinesisClient
 import com.gu.atom.TestData._
 import com.gu.atom.publish.KinesisAtomPublisher
 import org.mockito.ArgumentMatchers.{eq => argEq, _}
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 
 import scala.util.{Failure, Success}
 
 class KinesisAtomPublisherSpec
-    extends FunSpec
+    extends AnyFunSpec
     with Matchers
     with MockitoSugar {
 

@@ -4,16 +4,17 @@ import com.amazonaws.services.kinesis.AmazonKinesisClient
 import com.gu.atom.TestData
 import com.gu.atom.publish.{PreviewKinesisAtomReindexer, PublishedKinesisAtomReindexer}
 import org.mockito.ArgumentMatchers.{eq => meq, _}
-import org.mockito.Mockito._
+import org.mockito.Mockito.{times, verify}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatest.{FunSpecLike, Matchers}
+import org.scalatest.funspec.AnyFunSpecLike
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class KinesisAtomReindexerSpec
-    extends FunSpecLike
+    extends AnyFunSpecLike
     with Matchers
     with ScalaFutures
     with MockitoSugar {

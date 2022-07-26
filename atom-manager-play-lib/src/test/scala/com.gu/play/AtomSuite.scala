@@ -5,16 +5,15 @@ import com.gu.atom.data._
 import com.gu.atom.publish.{LiveAtomPublisher, PreviewAtomPublisher}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar.mock
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule, GuiceableModuleConversions}
 import play.api.inject.{Binding, bind}
 
-import scala.collection.mutable.{Map => MMap}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success}
 
-trait AtomSuite extends PlaySpec with GuiceableModuleConversions {
+trait AtomSuite extends PlaySpec with MockitoSugar with GuiceableModuleConversions {
 
   def dataStore = mock[AtomDataStore]
 
