@@ -12,9 +12,15 @@ dependencyOverrides += "org.scala-lang.modules" %% "scala-collection-compat" % "
 libraryDependencies ++= Seq(
   "com.typesafe.play"      %% "play"                  % playVersion,
   "com.gu"                 %% "content-atom-model"    % contentAtomVersion,
-  "org.scalatestplus.play" %% "scalatestplus-play"    % "5.1.0"   % "test",
+  "org.scalatestplus.play" %% "scalatestplus-play"    % "3.1.3"   % "test",
   "com.amazonaws"          %  "aws-java-sdk-dynamodb" % awsVersion,
-  "org.scalatestplus" %% "mockito-4-5" % "3.2.12.0" % "test",
+  "org.scalatestplus"      %% "mockito-3-3"           % "3.1.2.0" % "test",
   "com.typesafe.play"      %% "play-test"             % "2.6.0" % "test",
   guice
+)
+
+
+dependencyOverrides ++= Seq(
+  "org.mockito"                %  "mockito-core"         % "2.7.22",
+  "org.scalatest"              %% "scalatest"            % "3.0.8"
 )
