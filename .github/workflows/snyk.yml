@@ -10,6 +10,6 @@ jobs:
       DEBUG: true
       ORG: guardian-test
       SKIP_NODE: true
-      PRUNE_DUPLICATES: true
+      EXCLUDE: atom-manager-play-lib,atom-publisher-lib
     secrets:
        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
