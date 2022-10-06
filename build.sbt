@@ -1,4 +1,3 @@
-import com.typesafe.sbt.SbtPgp.autoImportImpl._
 import sbtrelease._
 
 import ReleaseStateTransformations._
