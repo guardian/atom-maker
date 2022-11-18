@@ -14,7 +14,9 @@ lazy val baseSettings = Seq(
   licenses := Seq("Apache V2" -> url("https://www.apache.org/licenses/LICENSE-2.0.html")),
   scmInfo := Some(ScmInfo(url("https://github.com/guardian/atom-maker"),
     "scm:git:git@github.com:guardian/atom-maker.git")),
-  scalacOptions := Seq("-deprecation", "-feature")
+  scalacOptions := Seq("-deprecation", "-feature"),
+  // FIXME remove when 2.11 build/release is discontinued
+  fork in Test := true
 )
 
 lazy val atomPublisher = (project in file("./atom-publisher-lib"))
