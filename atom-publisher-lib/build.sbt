@@ -21,8 +21,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging"        % "3.9.5",
   "com.twitter"                %% "scrooge-serializer"   % scroogeVersion,
   "com.twitter"                %% "scrooge-core"         % scroogeVersion,
-  "com.typesafe.akka"          %% "akka-actor"           % akkaVersion,
   "org.mockito"                %  "mockito-core"         % mockitoVersion % "test",
-  "org.scalatest"              %% "scalatest"            % "3.0.0" % "test",
-  "com.typesafe.akka"          %% "akka-testkit"         % akkaVersion % "test"
+  "org.scalatest"              %% "scalatest"            % "3.0.0" % "test"
 ) ++  scanamoDeps

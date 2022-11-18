@@ -9,11 +9,12 @@ name := "atom-maker-lib"
 
 lazy val baseSettings = Seq(
   organization := "com.gu",
-  scalaVersion := scala2_11,
+  scalaVersion := scala2_12,
   crossScalaVersions := Seq(scala2_11, scala2_12),
   licenses := Seq("Apache V2" -> url("https://www.apache.org/licenses/LICENSE-2.0.html")),
   scmInfo := Some(ScmInfo(url("https://github.com/guardian/atom-maker"),
-    "scm:git:git@github.com:guardian/atom-maker.git"))
+    "scm:git:git@github.com:guardian/atom-maker.git")),
+  scalacOptions := Seq("-deprecation", "-feature")
 )
 
 lazy val atomPublisher = (project in file("./atom-publisher-lib"))
