@@ -13,26 +13,26 @@ case class  DynamoError(info: String) extends DataStoreError(s"Dynamo was unable
 case class  ClientError(info: String) extends DataStoreError(s"Client was unable to get a response from a service, or if the client was unable to parse the response from a service. Error message: $info")
 case class  DecoderError(info: String) extends DataStoreError(s"Error decoding json to atom: $info")
 
-trait AtomDataStore extends DataStoreResultUtil {
+trait AtomDataStore[ATOM <: Atom] extends DataStoreResultUtil {
 
-  def getAtom(id: String): DataStoreResult[Atom]
+  def getAtom(id: String): DataStoreResult[ATOM]
 
-  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom]
+  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[ATOM]
 
-  def createAtom(atom: Atom): DataStoreResult[Atom]
+  def createAtom(atom: ATOM): DataStoreResult[ATOM]
 
-  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom]
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: ATOM): DataStoreResult[ATOM]
 
-  def listAtoms: DataStoreResult[List[Atom]]
+  def listAtoms: DataStoreResult[List[ATOM]]
 
   /* this will only allow the update if the version in atom is later
  * than the version stored in the database, otherwise it will report
  * it as a version conflict error */
-  def updateAtom(newAtom: Atom): DataStoreResult[Atom]
+  def updateAtom(newAtom: ATOM): DataStoreResult[ATOM]
 
-  def deleteAtom(id: String): DataStoreResult[Atom]
+  def deleteAtom(id: String): DataStoreResult[ATOM]
 
-  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom]
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[ATOM]
 }
 
 trait DataStoreResultUtil {
@@ -44,8 +44,8 @@ trait DataStoreResultUtil {
 
 object DataStoreResultUtil extends DataStoreResultUtil
 
-trait PreviewDataStore extends AtomDataStore
+trait PreviewDataStore[ATOM <: Atom] extends AtomDataStore[ATOM]
 
-trait PublishedDataStore extends AtomDataStore
+trait PublishedDataStore[ATOM <: Atom] extends AtomDataStore[ATOM]
 
 case class DynamoCompositeKey(partitionKey: String, sortKey: Option[String] = None)

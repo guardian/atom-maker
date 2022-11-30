@@ -1,11 +1,11 @@
 package com.gu.atom.util
 
-import com.gu.contentatom.thrift._
-import io.circe._
-import com.gu.fezziwig.CirceScroogeMacros._
-import com.gu.contententity.thrift.Entity
 import cats.syntax.either._
+import com.gu.contentatom.thrift._
+import com.gu.contententity.thrift.Entity
+import com.gu.fezziwig.CirceScroogeMacros._
 import com.twitter.scrooge.ThriftEnum
+import io.circe._
 
 object JsonSupport {
 
@@ -16,7 +16,7 @@ object JsonSupport {
   implicit def thriftEnumEncoder[T <: ThriftEnum]: Encoder[T] = Encoder[String].contramap(_.name)
 
   //Get a real Atom decoder from fezziwig
-  private val realAtomDecoder = {
+  private def realAtomDecoder[ATOM <: Atom](implicit decoder: Decoder[ATOM]) = {
     //These implicits speed up compilation
     implicit val entityDecoder = Decoder[Entity]
     implicit val imageAssetDecoder = Decoder[ImageAsset]
@@ -25,7 +25,7 @@ object JsonSupport {
     implicit val atomDataDecoder = Decoder[AtomData]
     implicit val flagsDecoder = Decoder[Flags]
 
-    Decoder[Atom]
+    Decoder[ATOM]
   }
 
   /**
@@ -54,9 +54,9 @@ object JsonSupport {
     *
     * This decoder supports either format.
     */
-  val backwardsCompatibleAtomDecoder: Decoder[Atom] = new Decoder[Atom] {
-    final def apply(c: HCursor): Decoder.Result[Atom] = {
-      val result: Option[Decoder.Result[Atom]] = for {
+  def backwardsCompatibleAtomDecoder[ATOM <: Atom](implicit decoder: Decoder[ATOM]) = new Decoder[ATOM] {
+    final def apply(c: HCursor): Decoder.Result[ATOM] = {
+      val result: Option[Decoder.Result[ATOM]] = for {
         topLevelObj <- c.value.asObject
         atomTypeJson <- topLevelObj("atomType")
         atomType <- atomTypeJson.asString
@@ -75,7 +75,7 @@ object JsonSupport {
           }
         }
 
-        fixedJson.as[Atom](realAtomDecoder)
+        fixedJson.as[ATOM](realAtomDecoder)
       }
 
       result.getOrElse(Left(DecodingFailure("Json does not match Atom format", c.history)))

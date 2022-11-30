@@ -1,30 +1,25 @@
 package com.gu.atom.data
 
-import java.util
-
+import cats.implicits._
+import cats.syntax.either._
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.document._
 import com.amazonaws.services.dynamodbv2.model.{ConditionalCheckFailedException, DeleteItemResult}
 import com.amazonaws.{AmazonClientException, AmazonServiceException}
+import com.gu.atom.util.JsonSupport.backwardsCompatibleAtomDecoder
 import com.gu.contentatom.thrift.Atom
-import cats.implicits._
-import cats.syntax.either._
 import io.circe._
 import io.circe.syntax._
-import com.gu.fezziwig.CirceScroogeMacros.{encodeThriftStruct, encodeThriftUnion}
-import com.gu.atom.util.JsonSupport.{backwardsCompatibleAtomDecoder, thriftEnumEncoder}
 
-import collection.JavaConverters._
+import java.util
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
-object AtomSerializer {
 
-  def toJson(newAtom: Atom): Json = newAtom.asJson
-}
-
-abstract class DynamoDataStore
+abstract class DynamoDataStore[ATOM <: Atom]
   (dynamo: AmazonDynamoDB, tableName: String)
-    extends AtomDataStore {
+  (implicit encoder: Encoder[ATOM], decoder: Decoder[ATOM])
+    extends AtomDataStore[ATOM] {
 
   private val dynamoDB = new DynamoDB(dynamo)
   private val table = dynamoDB.getTable(tableName)
@@ -34,8 +29,6 @@ abstract class DynamoDataStore
     val partitionKey = "atomType"
     val sortKey = "id"
   }
-
-  import AtomSerializer._
 
   protected def get(key: DynamoCompositeKey): DataStoreResult[Json] = {
     Try {
@@ -112,8 +105,8 @@ abstract class DynamoDataStore
   def parseJson(s: String): DataStoreResult[Json] =
     parser.parse(s).leftMap(parsingFailure => DynamoError(parsingFailure.getMessage))
 
-  def jsonToAtom(json: Json): DataStoreResult[Atom] =
-    json.as[Atom](backwardsCompatibleAtomDecoder).leftMap(error => DecoderError(error.message))
+  def jsonToAtom(json: Json): DataStoreResult[ATOM] =
+    json.as[ATOM](backwardsCompatibleAtomDecoder).leftMap(error => DecoderError(error.message))
 
   def jsonToItem(json: Json): Item = {
     val item = new Item()
@@ -129,54 +122,52 @@ abstract class DynamoDataStore
     case other => ReadError
   }
 
-  def getAtom(id: String): DataStoreResult[Atom] = getAtom(DynamoCompositeKey(id))
+  def getAtom(id: String): DataStoreResult[ATOM] = getAtom(DynamoCompositeKey(id))
 
-  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
+  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[ATOM] =
     get(dynamoCompositeKey) flatMap jsonToAtom
 
-  def createAtom(atom: Atom): DataStoreResult[Atom] = createAtom(DynamoCompositeKey(atom.id), atom)
+  def createAtom(atom: ATOM): DataStoreResult[ATOM] = createAtom(DynamoCompositeKey(atom.id), atom)
 
-  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom] = {
+  def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: ATOM): DataStoreResult[ATOM] = {
     getAtom(dynamoCompositeKey) match {
       case Right(_) =>
         Left(IDConflictError)
       case Left(error) =>
-        put(toJson(atom)).map(_ => atom)
+        put(atom.asJson).map(_ => atom)
     }
   }
 
-  def deleteAtom(id: String): DataStoreResult[Atom] = deleteAtom(DynamoCompositeKey(id))
+  def deleteAtom(id: String): DataStoreResult[ATOM] = deleteAtom(DynamoCompositeKey(id))
 
-  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
+  def deleteAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[ATOM] =
     getAtom(dynamoCompositeKey).flatMap { atom =>
       delete(dynamoCompositeKey).map(_ => atom)
     }
 
-  private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
+  private def findAtoms(tableName: String): DataStoreResult[List[ATOM]] =
     scan.flatMap(_.traverse(jsonToAtom))
 
-  def listAtoms: DataStoreResult[List[Atom]] = findAtoms(tableName)
+  def listAtoms: DataStoreResult[List[ATOM]] = findAtoms(tableName)
 
 }
 
-class PreviewDynamoDataStore
+class PreviewDynamoDataStore[ATOM <: Atom]
 (dynamo: AmazonDynamoDB, tableName: String)
-  extends DynamoDataStore(dynamo, tableName)
-  with PreviewDataStore {
+(implicit encoder: Encoder[ATOM], decoder: Decoder[ATOM])
+  extends DynamoDataStore[ATOM](dynamo, tableName)
+  with PreviewDataStore[ATOM] {
 
-  import AtomSerializer._
-
-  def updateAtom(newAtom: Atom) =
-    put(toJson(newAtom), newAtom.contentChangeDetails.revision).map(_ => newAtom)
+  def updateAtom(newAtom: ATOM) =
+    put(newAtom.asJson, newAtom.contentChangeDetails.revision).map(_ => newAtom)
 }
 
-class PublishedDynamoDataStore
+class PublishedDynamoDataStore[ATOM <: Atom]
 (dynamo: AmazonDynamoDB, tableName: String)
-  extends DynamoDataStore(dynamo, tableName)
-  with PublishedDataStore {
+(implicit encoder: Encoder[ATOM], decoder: Decoder[ATOM])
+  extends DynamoDataStore[ATOM](dynamo, tableName)
+  with PublishedDataStore[ATOM] {
 
-  import AtomSerializer._
-
-  def updateAtom(newAtom: Atom) = put(toJson(newAtom)).map(_ => newAtom)
+  def updateAtom(newAtom: ATOM) = put(newAtom.asJson).map(_ => newAtom)
 }
 

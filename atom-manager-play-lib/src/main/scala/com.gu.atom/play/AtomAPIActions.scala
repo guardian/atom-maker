@@ -11,12 +11,12 @@ import play.api.mvc._
 
 import scala.util.{Failure, Success}
 
-trait AtomAPIActions extends BaseController {
+trait AtomAPIActions[ATOM <: Atom] extends BaseController {
 
   val livePublisher: LiveAtomPublisher
   val previewPublisher: PreviewAtomPublisher
-  val previewDataStore: PreviewDataStore
-  val publishedDataStore: PublishedDataStore
+  val previewDataStore: PreviewDataStore[ATOM]
+  val publishedDataStore: PublishedDataStore[ATOM]
 
   private def jsonError(msg: String): JsObject = JsObject(Seq("error" -> JsString(msg)))
 
