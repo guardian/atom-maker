@@ -1,9 +1,5 @@
 import BuildVars._
 
-// keep this to the same level as sanamo otherwise we will evict the
-// only version of the library that scanamo will work with
-lazy val AwsSdkVersion = "1.11.8"
-
 name := "atom-manager-play"
 
 libraryDependencies ++= Seq(
