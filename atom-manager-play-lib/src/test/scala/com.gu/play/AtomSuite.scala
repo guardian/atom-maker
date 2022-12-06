@@ -73,7 +73,7 @@ trait AtomSuite extends PlaySpec with GuiceableModuleConversions {
     publishedDataStore: PublishedDataStore = initialPublishedDataStore,
     livePublisher: LiveAtomPublisher = initialLivePublisher,
     previewPublisher: PreviewAtomPublisher = initialPreviewPublisher,
-    shutDownHook: AtomTestConf => Unit = _.app.stop) {
+    shutDownHook: AtomTestConf => Unit = _.app.stop()) {
 
     private def makeOverrides: GuiceableModule = Seq(
       ibind(dataStore),

@@ -6,7 +6,8 @@ name := "atom-maker-lib"
 
 lazy val baseSettings = Seq(
   organization := "com.gu",
-  scalaVersion := "2.12.16",
+  scalaVersion := "2.12.17",
+  crossScalaVersions := Seq(scalaVersion.value, "2.13.10"),
   licenses := Seq("Apache V2" -> url("https://www.apache.org/licenses/LICENSE-2.0.html")),
   scmInfo := Some(ScmInfo(url("https://github.com/guardian/atom-maker"),
     "scm:git:git@github.com:guardian/atom-maker.git")),
@@ -38,6 +39,7 @@ lazy val atomLibraries = (project in file("."))
   publishArtifact := false,
   publish := {},
   publishLocal := {},
+  releaseCrossBuild := true, // true if you cross-build the project for multiple Scala versions
   releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
     inquireVersions,
@@ -46,7 +48,8 @@ lazy val atomLibraries = (project in file("."))
     setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
-    releaseStepCommand("publishSigned"),
+    // For non cross-build projects, use releaseStepCommand("publishSigned")
+    releaseStepCommandAndRemaining("+publishSigned"),
     releaseStepCommand("sonatypeBundleRelease"),
     setNextVersion,
     commitNextVersion,

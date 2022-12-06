@@ -28,9 +28,9 @@ class DynamoDataStoreSpec
   type FixtureParam = DataStores
 
   def withFixture(test: OneArgTest) = {
-    val previewDb = new PreviewDynamoDataStore(LocalDynamoDB.client, tableName)
-    val compositeKeyDb = new PreviewDynamoDataStore(LocalDynamoDB.client, compositeKeyTableName)
-    val publishedDb = new PublishedDynamoDataStore(LocalDynamoDB.client, publishedTableName)
+    val previewDb = new PreviewDynamoDataStore(LocalDynamoDB.client(), tableName)
+    val compositeKeyDb = new PreviewDynamoDataStore(LocalDynamoDB.client(), compositeKeyTableName)
+    val publishedDb = new PublishedDynamoDataStore(LocalDynamoDB.client(), publishedTableName)
     super.withFixture(test.toNoArgTest(DataStores(previewDb, publishedDb, compositeKeyDb)))
   }
 
@@ -135,9 +135,9 @@ class DynamoDataStoreSpec
   }
 
   override def beforeAll() = {
-    val client = LocalDynamoDB.client
-    LocalDynamoDB.createTable(client)(tableName)('id -> S)
-    LocalDynamoDB.createTable(client)(publishedTableName)('id -> S)
-    LocalDynamoDB.createTable(client)(compositeKeyTableName)('atomType -> S, 'id -> S)
+    val client = LocalDynamoDB.client()
+    LocalDynamoDB.createTable(client)(tableName)(Symbol("id") -> S)
+    LocalDynamoDB.createTable(client)(publishedTableName)(Symbol("id") -> S)
+    LocalDynamoDB.createTable(client)(compositeKeyTableName)(Symbol("atomType") -> S, Symbol("id") -> S)
   }
 }

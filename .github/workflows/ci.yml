@@ -21,4 +21,4 @@ jobs:
         distribution: corretto
         java-version: ${{ matrix.java }}
     - name: Build and Test
-      run: sbt clean compile test
+      run: sbt +clean +compile +test
