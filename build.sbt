@@ -16,7 +16,7 @@ lazy val baseSettings = Seq(
     "scm:git:git@github.com:guardian/atom-maker.git")),
   scalacOptions := Seq("-deprecation", "-feature"),
   // FIXME remove when 2.11 build/release is discontinued
-  fork in Test := true
+  Test / fork := true
 )
 
 lazy val atomPublisher = (project in file("./atom-publisher-lib"))
@@ -25,7 +25,7 @@ lazy val atomPublisher = (project in file("./atom-publisher-lib"))
     organization := "com.gu",
     name := "atom-publisher-lib"
   )
-  .settings(publishArtifact in Test := true)
+  .settings(Test / publishArtifact := true)
 
 
 lazy val atomManagerPlay = (project in file("./atom-manager-play-lib"))
@@ -34,7 +34,7 @@ lazy val atomManagerPlay = (project in file("./atom-manager-play-lib"))
     organization := "com.gu",
     name := "atom-manager-play-lib"
   )
-  .settings(publishArtifact in Test := true)
+  .settings(Test / publishArtifact := true)
   .dependsOn(atomPublisher % "test->test;compile->compile")
 
 lazy val atomLibraries = (project in file("."))
