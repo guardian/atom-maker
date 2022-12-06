@@ -1,6 +1,6 @@
 sonatypeProfileName := "com.gu"
 
-pomExtra in ThisBuild := (
+ThisBuild / pomExtra := (
   <url>https://github.com/guardian/atom-maker</url>
     <developers>
       <developer>
