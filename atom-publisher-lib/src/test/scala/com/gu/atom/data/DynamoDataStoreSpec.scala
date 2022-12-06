@@ -5,10 +5,12 @@ import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType._
 import com.gu.atom.TestData._
 import com.gu.atom.util.{AtomImplicitsGeneral, JsonSupport}
 import com.gu.contentatom.thrift.Atom
-import org.scalatest.{BeforeAndAfterAll, Matchers, OptionValues, fixture}
+import org.scalatest.{BeforeAndAfterAll, OptionValues}
+import org.scalatest.matchers.should._
+import org.scalatest.funspec.FixtureAnyFunSpec
 
 class DynamoDataStoreSpec
-    extends fixture.FunSpec
+    extends FixtureAnyFunSpec
     with Matchers
     with OptionValues
     with BeforeAndAfterAll
