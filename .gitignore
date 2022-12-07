@@ -6,3 +6,4 @@ public/dist
 .ensime*
 .DS_Store
 .java-version
+.bsp/
