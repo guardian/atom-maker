@@ -11,6 +11,7 @@ lazy val baseSettings = Seq(
   scmInfo := Some(ScmInfo(url("https://github.com/guardian/atom-maker"),
     "scm:git:git@github.com:guardian/atom-maker.git")),
   scalacOptions := Seq("-deprecation", "-feature"),
+  publishTo := sonatypePublishToBundle.value,
 )
 
 lazy val atomPublisher = (project in file("./atom-publisher-lib"))
@@ -45,10 +46,10 @@ lazy val atomLibraries = (project in file("."))
     setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
-    ReleaseStep(action = Command.process("publishSigned", _)),
+    releaseStepCommand("publishSigned"),
     setNextVersion,
     commitNextVersion,
-    ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+    releaseStepCommand("sonatypeBundleRelease"),
     pushChanges
   )
 )
