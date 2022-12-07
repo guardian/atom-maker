@@ -47,9 +47,9 @@ lazy val atomLibraries = (project in file("."))
     commitReleaseVersion,
     tagRelease,
     releaseStepCommand("publishSigned"),
+    releaseStepCommand("sonatypeBundleRelease"),
     setNextVersion,
     commitNextVersion,
-    releaseStepCommand("sonatypeBundleRelease"),
     pushChanges
   )
 )
