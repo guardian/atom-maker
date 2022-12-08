@@ -22,6 +22,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging"         % "3.9.5",
   "com.twitter"                %% "scrooge-serializer"    % scroogeVersion,
   "com.twitter"                %% "scrooge-core"          % scroogeVersion,
-  "org.mockito"                %  "mockito-core"          % mockitoVersion % "test",
-  "org.scalatest"              %% "scalatest"             % "3.0.0" % "test"
+  "org.mockito"                %  "mockito-core"          % mockitoVersion % Test,
+  "org.scalatest"              %% "scalatest"             % "3.0.0" % Test
 )

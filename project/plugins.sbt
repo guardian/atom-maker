@@ -6,7 +6,7 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.8")
 
 addSbtPlugin("com.github.sbt" % "sbt-release" % "1.1.0")
 
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "2.0.1")
+addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.2.1")
 
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.15")
 
@@ -16,12 +16,11 @@ addSbtPlugin("com.localytics" % "sbt-dynamodb" % "2.0.3")
 addDependencyTreePlugin
 
 /*
-   Because scala-xml has not be updated to 2.x in sbt yet but has in sbt-native-packager
+   scala-xml has been updated to 2.x in sbt, but not in other sbt plugins like sbt-native-packager
    See: https://github.com/scala/bug/issues/12632
-
-   This effectively overrides the safeguards (early-semver) put in place by the library authors ensuring binary compatibility.
-   We consider this a safe operation because it only affects the compilation of build.sbt, not of the application build itself
+   This is effectively overrides the safeguards (early-semver) put in place by the library authors ensuring binary compatibility.
+   We consider this a safe operation because when set under `projects/` (ie *not* in `build.sbt` itself) it only affects the
+   compilation of build.sbt, not of the application build itself.
+   Once the build has succeeded, there is no further risk (ie of a runtime exception due to clashing versions of `scala-xml`).
  */
-libraryDependencySchemes ++= Seq(
-  "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
-)
+libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
