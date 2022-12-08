@@ -34,17 +34,17 @@ class ReindexActor(reindexer: AtomReindexer) extends Actor {
       job.execute.onComplete {
         case _ => context.become(idleState(Some(job)), true)
       }
-      sender ! RSuccess
+      sender() ! RSuccess
 
     case GetStatus =>
-      sender ! lastJob.map(statusReply)
+      sender() ! lastJob.map(statusReply)
   }
 
   def inProgressState(job: AtomReindexJob): Receive = {
     case CreateJob(_, _) =>
-      sender ! RFailure("in progress")
+      sender() ! RFailure("in progress")
     case GetStatus =>
-      sender ! Some(statusReply(job))
+      sender() ! Some(statusReply(job))
   }
 
   /* start off in idle state with no record of a previous job */

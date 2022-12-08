@@ -2,8 +2,7 @@ package com.gu.atom.data
 
 import com.amazonaws.services.dynamodbv2._
 import com.amazonaws.services.dynamodbv2.model._
-
-import scala.collection.convert.decorateAsJava._
+import scala.jdk.CollectionConverters._
 
 /*
  * copied from:

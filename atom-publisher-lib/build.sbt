@@ -13,9 +13,10 @@ dependencyOverrides += "com.twitter" %% "scrooge-core" % scroogeVersion
 dependencyOverrides += "com.twitter" %% "scrooge-serializer" % scroogeVersion
 
 libraryDependencies ++= Seq(
-  "org.typelevel"              %% "cats-core"             % "1.5.0",
-  "io.circe"                   %% "circe-parser"          % "0.11.0",
-  "com.gu"                     %% "fezziwig"              % "1.1",
+  "org.scala-lang.modules"     %% "scala-collection-compat" % "2.8.1",
+  "org.typelevel"              %% "cats-core"             % "2.9.0",
+  "io.circe"                   %% "circe-parser"          % "0.14.3",
+  "com.gu"                     %% "fezziwig"              % "1.6",
   "com.gu"                     %% "content-atom-model"    % contentAtomVersion,
   "com.amazonaws"              %  "aws-java-sdk-dynamodb" % awsVersion,
   "com.amazonaws"              %  "aws-java-sdk-kinesis"  % awsVersion,
@@ -23,5 +24,6 @@ libraryDependencies ++= Seq(
   "com.twitter"                %% "scrooge-serializer"    % scroogeVersion,
   "com.twitter"                %% "scrooge-core"          % scroogeVersion,
   "org.mockito"                %  "mockito-core"          % mockitoVersion % Test,
-  "org.scalatest"              %% "scalatest"             % "3.0.0" % Test
+  "org.scalatestplus"          %% "mockito-4-6"           % "3.2.14.0" % Test,
+  "org.scalatest"              %% "scalatest"             % "3.2.14" % Test
 )

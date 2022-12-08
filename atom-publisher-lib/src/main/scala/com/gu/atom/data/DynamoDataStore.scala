@@ -14,7 +14,7 @@ import io.circe.syntax._
 import com.gu.fezziwig.CirceScroogeMacros.{encodeThriftStruct, encodeThriftUnion}
 import com.gu.atom.util.JsonSupport.{backwardsCompatibleAtomDecoder, thriftEnumEncoder}
 
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 object AtomSerializer {
