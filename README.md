@@ -7,7 +7,7 @@ For the atoms to appear in capi you will also have to make necessary changes to 
 
 An example of a project that uses these libraries to manage atoms can be found [here](https://github.com/guardian/media-atom-maker).
 
-## Atom-publisher-lib ![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gu/atom-publisher-lib_2.11/badge.svg)
+## Atom-publisher-lib [![atom-publisher-lib Scala version support](https://index.scala-lang.org/guardian/atom-maker/atom-publisher-lib/latest-by-scala-version.svg?platform=jvm)](https://index.scala-lang.org/guardian/atom-maker/atom-publisher-lib)
 - Provides that traits you an inject in your application
 
 ### PublishedStore and PreviewDataStore
