@@ -8,7 +8,7 @@ startDynamoDBLocal := startDynamoDBLocal.dependsOn(Test / compile).value
 Test / test := (Test / test).dependsOn(startDynamoDBLocal).value
 Test / testOptions += dynamoDBLocalTestCleanup.value
 
-dependencyOverrides += "org.apache.thrift" % "libthrift" % "0.10.0"
+dependencyOverrides += "org.apache.thrift" % "libthrift" % "0.18.0"
 dependencyOverrides += "com.twitter" %% "scrooge-core" % scroogeVersion
 dependencyOverrides += "com.twitter" %% "scrooge-serializer" % scroogeVersion
 
