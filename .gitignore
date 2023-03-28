@@ -7,3 +7,5 @@ public/dist
 .DS_Store
 .java-version
 .bsp/
+.metals
+.vscode
