@@ -176,3 +176,5 @@ POST    /api/atom/:id/publish           controllers.MyAtomController.publishAtom
 
 ## Releasing a new version
 Run `./script/release` from the project root.
+## Releasing a snapshot version
+Run `sbt release` from the project root. When prompted for the version **don't use the default**. Instead provide a version with `-SNAPSHOT` at the end. [sbt sonatype will detect this is a snapshot version, and publish to the Sonatype Snapshots repository](https://github.com/xerial/sbt-sonatype#buildsbt)
