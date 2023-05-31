@@ -13,17 +13,19 @@ dependencyOverrides += "com.twitter" %% "scrooge-core" % scroogeVersion
 dependencyOverrides += "com.twitter" %% "scrooge-serializer" % scroogeVersion
 
 libraryDependencies ++= Seq(
-  "org.scala-lang.modules"     %% "scala-collection-compat" % "2.8.1",
-  "org.typelevel"              %% "cats-core"             % "2.9.0",
-  "io.circe"                   %% "circe-parser"          % "0.14.3",
-  "com.gu"                     %% "fezziwig"              % "1.6",
-  "com.gu"                     %% "content-atom-model"    % contentAtomVersion,
-  "com.amazonaws"              %  "aws-java-sdk-dynamodb" % awsVersion,
-  "com.amazonaws"              %  "aws-java-sdk-kinesis"  % awsVersion,
-  "com.typesafe.scala-logging" %% "scala-logging"         % "3.9.5",
-  "com.twitter"                %% "scrooge-serializer"    % scroogeVersion,
-  "com.twitter"                %% "scrooge-core"          % scroogeVersion,
-  "org.mockito"                %  "mockito-core"          % mockitoVersion % Test,
-  "org.scalatestplus"          %% "mockito-4-6"           % "3.2.14.0" % Test,
-  "org.scalatest"              %% "scalatest"             % "3.2.14" % Test
+  "org.scala-lang.modules"           %% "scala-collection-compat" % "2.8.1",
+  "org.typelevel"                    %% "cats-core"               % "2.9.0",
+  "io.circe"                         %% "circe-parser"            % "0.14.3",
+  "com.gu"                           %% "fezziwig"                % "1.6",
+  "com.gu"                           %% "content-atom-model"      % contentAtomVersion,
+  "com.amazonaws"                    %  "aws-java-sdk-dynamodb"   % awsVersion,
+  "com.amazonaws"                    %  "aws-java-sdk-kinesis"    % awsVersion,
+  "com.fasterxml.jackson.module"     %% "jackson-module-scala"    % jacksonVersion,
+  "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor"  % jacksonVersion,
+  "com.typesafe.scala-logging"       %% "scala-logging"           % "3.9.5",
+  "com.twitter"                      %% "scrooge-serializer"      % scroogeVersion,
+  "com.twitter"                      %% "scrooge-core"            % scroogeVersion,
+  "org.mockito"                      %  "mockito-core"            % mockitoVersion % Test,
+  "org.scalatestplus"                %% "mockito-4-6"             % "3.2.14.0" % Test,
+  "org.scalatest"                    %% "scalatest"               % "3.2.14" % Test
 )
