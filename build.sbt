@@ -33,6 +33,22 @@ lazy val atomManagerPlay = (project in file("./atom-manager-play-lib"))
   .settings(Test / publishArtifact := true)
   .dependsOn(atomPublisher % "test->test;compile->compile")
 
+lazy val commonReleaseProcess = Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  setReleaseVersion,
+  runClean,
+  runTest,
+  // For non cross-build projects, use releaseStepCommand("publishSigned")
+  releaseStepCommandAndRemaining("+publishSigned"),
+)
+
+lazy val productionReleaseProcess = commonReleaseProcess ++ Seq[ReleaseStep](
+  releaseStepCommand("sonatypeBundleRelease"),
+)
+
+lazy val snapshotReleaseProcess = commonReleaseProcess
+
 lazy val atomLibraries = (project in file("."))
   .aggregate(atomPublisher, atomManagerPlay)
   .settings(baseSettings: _*).settings(
@@ -40,19 +56,10 @@ lazy val atomLibraries = (project in file("."))
   publish := {},
   publishLocal := {},
   releaseCrossBuild := true, // true if you cross-build the project for multiple Scala versions
-  releaseProcess := Seq[ReleaseStep](
-    checkSnapshotDependencies,
-    inquireVersions,
-    runClean,
-    runTest,
-    setReleaseVersion,
-    commitReleaseVersion,
-    tagRelease,
-    // For non cross-build projects, use releaseStepCommand("publishSigned")
-    releaseStepCommandAndRemaining("+publishSigned"),
-    releaseStepCommand("sonatypeBundleRelease"),
-    setNextVersion,
-    commitNextVersion,
-    pushChanges
-  )
+  releaseProcess := {
+    sys.props.get("RELEASE_TYPE") match {
+      case Some("production") => productionReleaseProcess
+      case _ => snapshotReleaseProcess
+    }
+  }
 )
