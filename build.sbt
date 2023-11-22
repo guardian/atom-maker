@@ -63,5 +63,3 @@ lazy val atomLibraries = (project in file("."))
     }
   }
 )
-
-resolvers ++= Resolver.sonatypeOssRepos("snapshots")
