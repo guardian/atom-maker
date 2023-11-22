@@ -1,14 +1,7 @@
 name: 'Publish Release'
-
 on:
-  workflow_dispatch:
-    inputs:
-      isSnapshot:
-        description: Produce a snapshot release
-        required: true
-        default: true
-        type: boolean
-
+  release:
+    types: [published]
 jobs:
   sbt_release:
     runs-on: ubuntu-latest
