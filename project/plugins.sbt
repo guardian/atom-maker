@@ -1,14 +1,8 @@
-// The Typesafe repository
-resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/maven-releases/"
-
-// Use the Play sbt plugin for Play projects
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.8")
 
 addSbtPlugin("com.github.sbt" % "sbt-release" % "1.1.0")
-
-addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.2.1")
-
-addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.15")
+addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.10.0")
+addSbtPlugin("ch.epfl.scala" % "sbt-version-policy" % "3.2.0")
 
 // for creating test cases that use a local dynamodb
 addSbtPlugin("com.localytics" % "sbt-dynamodb" % "2.0.3")
