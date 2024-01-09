@@ -133,7 +133,7 @@ bind(classOf[PreviewAtomReindexer])
 bind(classOf[PublishedAtomReindexer])
 .toProvider(classOf[PublishedAtomReindexerProvider])
 ```
-## Atom-manager-play-lib ![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gu/atom-manager-play_2.11/badge.svg)
+## Atom-manager-play-lib [![atom-manager-play Scala version support](https://index.scala-lang.org/guardian/atom-maker/atom-manager-play/latest-by-scala-version.svg?platform=jvm)](https://index.scala-lang.org/guardian/atom-maker/atom-manager-play)
 - Sits on top of `atom-publisher-lib`
 - Provides methods for publishing and reindexing atoms
 
