@@ -13,7 +13,7 @@ dependencyOverrides += "com.twitter" %% "scrooge-core" % scroogeVersion
 dependencyOverrides += "com.twitter" %% "scrooge-serializer" % scroogeVersion
 
 libraryDependencies ++= Seq(
-  "org.scala-lang.modules"     %% "scala-collection-compat" % "2.8.1",
+  "org.scala-lang.modules"     %% "scala-collection-compat" % "2.11.0",
   "org.typelevel"              %% "cats-core"             % "2.9.0",
   "io.circe"                   %% "circe-parser"          % "0.14.6",
   "com.gu"                     %% "fezziwig"              % "1.9.1",
