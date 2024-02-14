@@ -6,10 +6,9 @@ name := "atom-maker-lib"
 
 lazy val artifactProductionSettings = Seq(
   organization := "com.gu",
-  scalaVersion := "2.12.18",
-  crossScalaVersions := Seq(scalaVersion.value, "2.13.12"),
+  scalaVersion := "2.13.12",
   licenses := Seq(License.Apache2),
-  scalacOptions := Seq("-deprecation", "-feature", "-release:8")
+  scalacOptions := Seq("-deprecation", "-feature", "-release:11")
 )
 
 lazy val atomPublisher = (project in file("./atom-publisher-lib"))
@@ -32,7 +31,6 @@ lazy val atomLibraries = (project in file("."))
   .aggregate(atomPublisher, atomManagerPlay).settings(
     publish / skip := true,
     releaseVersion := ReleaseVersion.fromAggregatedAssessedCompatibilityWithLatestRelease().value,
-    releaseCrossBuild := true, // true if you cross-build the project for multiple Scala versions
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
       inquireVersions,
