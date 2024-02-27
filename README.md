@@ -1,4 +1,4 @@
-# Atom maker libraries
+# Atom maker libraries [![Release](https://github.com/guardian/atom-maker/actions/workflows/release.yml/badge.svg)](https://github.com/guardian/atom-maker/actions/workflows/release.yml)
 
 This repository contains two libraries for creating, publishing and managing content atoms.
 
