@@ -2,9 +2,9 @@ package com.gu.atom.play
 
 import java.util.Date
 import javax.inject.{Inject, Singleton}
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import akka.pattern.ask
-import akka.util.Timeout
+import org.apache.pekko.actor.{Actor, ActorRef, ActorSystem, Props}
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.util.Timeout
 import com.gu.atom.data._
 import com.gu.atom.play.ReindexActor._
 import com.gu.atom.publish._
