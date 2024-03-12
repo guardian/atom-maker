@@ -24,7 +24,7 @@ import scala.concurrent.duration._
  */
 
 class ReindexActor(reindexer: AtomReindexer) extends Actor {
-  implicit val ec = context.dispatcher
+  implicit val ec: ExecutionContext = context.dispatcher
 
   /* this is the initial, idle state. In this state we will accept new jobs */
   def idleState(lastJob: Option[AtomReindexJob]): Receive = {
@@ -96,14 +96,14 @@ class ReindexController @Inject() (
 
   def now() = new Date().getTime
 
-  implicit val ec = system.dispatcher
+  implicit val ec: ExecutionContext = system.dispatcher
 
   val previewReindexActor = system.actorOf(Props(classOf[ReindexActor], previewReindexer))
   val publishedReindexActor = system.actorOf(Props(classOf[ReindexActor], publishedReindexer))
 
-  implicit val timeout = Timeout(5.seconds)
+  implicit val timeout: Timeout = Timeout(5.seconds)
 
-  implicit val statusWrites = Json.writes[JobStatus]
+  implicit val statusWrites: Writes[JobStatus] = Json.writes[JobStatus]
 
   object ApiKeyAction extends ActionBuilder[Request, AnyContent] {
     lazy val apiKey = config.get[String]("reindexApiKey")
