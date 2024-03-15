@@ -1,4 +1,4 @@
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.9.1")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.9.2")
 
 addSbtPlugin("com.github.sbt" % "sbt-release" % "1.4.0")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.10.0")
