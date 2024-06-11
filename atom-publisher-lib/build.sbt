@@ -15,7 +15,7 @@ dependencyOverrides += "com.twitter" %% "scrooge-serializer" % scroogeVersion
 libraryDependencies ++= Seq(
   "org.scala-lang.modules"     %% "scala-collection-compat" % "2.8.1",
   "org.typelevel"              %% "cats-core"             % "2.10.0",
-  "io.circe"                   %% "circe-parser"          % "0.14.3",
+  "io.circe"                   %% "circe-parser"          % "0.14.7",
   "com.gu"                     %% "fezziwig"              % "2.0.0",
   "com.gu"                     %% "content-atom-model"    % contentAtomVersion,
   "com.amazonaws"              %  "aws-java-sdk-dynamodb" % awsVersion,
