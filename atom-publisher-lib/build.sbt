@@ -24,6 +24,6 @@ libraryDependencies ++= Seq(
   "com.twitter"                %% "scrooge-serializer"    % scroogeVersion,
   "com.twitter"                %% "scrooge-core"          % scroogeVersion,
   "org.mockito"                %  "mockito-core"          % mockitoVersion % Test,
-  "org.scalatestplus"          %% "mockito-4-6"           % "3.2.14.0" % Test,
+  "org.scalatestplus"          %% "mockito-4-6"           % "3.2.15.0" % Test,
   "org.scalatest"              %% "scalatest"             % "3.2.18" % Test
 )
