@@ -5,5 +5,5 @@ object BuildVars {
   lazy val contentAtomVersion = "4.0.4"
   lazy val scroogeVersion     = "22.12.0"
   lazy val playVersion        = "3.0.2"
-  lazy val mockitoVersion     = "4.11.0"
+  lazy val mockitoVersion     = "5.12.0"
 }
