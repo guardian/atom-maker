@@ -20,5 +20,6 @@ jobs:
       with:
         distribution: corretto
         java-version: ${{ matrix.java }}
+    - uses: sbt/setup-sbt@v1.1.0
     - name: Build and Test
       run: sbt +clean +compile +test
