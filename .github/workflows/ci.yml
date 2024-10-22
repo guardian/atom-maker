@@ -15,6 +15,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@e2f20e631ae6d7dd3b768f56a5d2af784dd54791 # v2.5.0
-    - uses: guardian/setup-scala@v1
+    - name: Setup JDK
+      uses: actions/setup-java@de1bb2b0c5634f0fc4438d7aa9944e68f9bf86cc # v3.6.0
+      with:
+        distribution: corretto
+        java-version: ${{ matrix.java }}
     - name: Build and Test
       run: sbt +clean +compile +test
