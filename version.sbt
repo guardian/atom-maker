@@ -1,1 +1,1 @@
-ThisBuild / version := "4.0.1-SNAPSHOT"
+ThisBuild / version := "5.0.0-PREVIEW.rjr-new-looping-video-boolean-field.2025-09-15T1027.bd3ca34d"
