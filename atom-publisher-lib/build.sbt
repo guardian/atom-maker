@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
   "com.gu"                     %% "content-atom-model"    % contentAtomVersion,
   "com.amazonaws"              %  "aws-java-sdk-dynamodb" % awsVersion,
   "com.amazonaws"              %  "aws-java-sdk-kinesis"  % awsVersion,
-  "com.typesafe.scala-logging" %% "scala-logging"         % "3.9.5",
+  "com.typesafe.scala-logging" %% "scala-logging"         % "3.9.6",
   "com.twitter"                %% "scrooge-serializer"    % scroogeVersion,
   "com.twitter"                %% "scrooge-core"          % scroogeVersion,
   "org.mockito"                %  "mockito-core"          % mockitoVersion % Test,
