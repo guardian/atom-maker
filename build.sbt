@@ -6,7 +6,7 @@ name := "atom-maker-lib"
 
 lazy val artifactProductionSettings = Seq(
   organization := "com.gu",
-  scalaVersion := "2.13.13",
+  scalaVersion := "2.13.18",
   licenses := Seq(License.Apache2),
   scalacOptions := Seq("-deprecation", "-feature", "-release:11")
 )
