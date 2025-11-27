@@ -22,3 +22,11 @@ class KinesisAtomPublisherV2(val streamName: String, val kinesis: KinesisClient)
     ()
   }
 }
+
+class PreviewKinesisAtomPublisherV2(override val streamName: String,
+                                  override val kinesis: KinesisClient)
+  extends KinesisAtomPublisherV2(streamName, kinesis) with PreviewAtomPublisher
+
+class LiveKinesisAtomPublisherV2(override val streamName: String,
+                               override val kinesis: KinesisClient)
+  extends KinesisAtomPublisherV2(streamName, kinesis) with LiveAtomPublisher
