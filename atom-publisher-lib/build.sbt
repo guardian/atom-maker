@@ -27,5 +27,6 @@ libraryDependencies ++= Seq(
   "org.scalatestplus"          %% "mockito-4-6"           % "3.2.14.0" % Test,
   "org.scalatest"              %% "scalatest"             % "3.2.14" % Test,
   "software.amazon.awssdk"     % "kinesis"                % "2.39.4",
-  "software.amazon.awssdk"     % "dynamodb"                 % "2.39.4"
+  "software.amazon.awssdk"     % "dynamodb"               % "2.39.6",
+  "software.amazon.awssdk"     % "dynamodb-enhanced"      % "2.39.6",
 )

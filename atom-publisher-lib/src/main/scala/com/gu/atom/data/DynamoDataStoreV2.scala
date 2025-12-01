@@ -1,21 +1,41 @@
 package com.gu.atom.data
 
-import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
-import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse
-import software.amazon.awssdk.services.dynamodb.model.ItemResponse
+import software.amazon.awssdk.services.dynamodb.{DynamoDbAsyncClient, DynamoDbClient}
+import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, DeleteItemResponse, DescribeTableRequest, GetItemRequest, ItemResponse}
 import software.amazon.awssdk.awscore.exception.AwsServiceException
 import com.gu.contentatom.thrift.Atom
 import cats.implicits._
 import io.circe._
 import com.gu.atom.util.JsonSupport.backwardsCompatibleAtomDecoder
+import io.circe.syntax.EncoderOps
 import software.amazon.awssdk.core.exception.SdkException
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata.primaryIndexName
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest
+import software.amazon.awssdk.enhanced.dynamodb.{AttributeConverterProvider, AttributeValueType, DynamoDbEnhancedClient, Key, TableMetadata, TableSchema}
+
+import scala.jdk.CollectionConverters.MapHasAsJava
+import scala.util.{Failure, Success, Try}
 
 abstract class DynamoDataStoreV2
-  (dynamo: DynamoDbAsyncClient, tableName: String)
+  (dynamo: DynamoDbClient, tableName: String)
     extends AtomDataStore {
 
-//  private val dynamoDB = DynamoDbClient.builder().build()
-//  private val table = dynamo.(tableName)
+  lazy val ddb: DynamoDbEnhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamo).build()
+
+  lazy val tableSchema1 = TableSchema.documentSchemaBuilder()
+    .addIndexPartitionKey(TableMetadata.primaryIndexName(), "id", AttributeValueType.S)
+    .attributeConverterProviders(AttributeConverterProvider.defaultProvider())
+    .build()
+
+  val table1 = ddb.table(tableName, tableSchema1)
+
+  lazy val tableSchema2 = TableSchema.documentSchemaBuilder()
+    .addIndexPartitionKey(TableMetadata.primaryIndexName(), CompositeKey.partitionKey, AttributeValueType.S)
+    .addIndexSortKey("commission-index", CompositeKey.sortKey, AttributeValueType.S)
+    .attributeConverterProviders(AttributeConverterProvider.defaultProvider())
+    .build()
+
+  val table2 = ddb.table(tableName, tableSchema2)
 
   private val SimpleKeyName = "id"
   private object CompositeKey {
@@ -26,16 +46,15 @@ abstract class DynamoDataStoreV2
   import AtomSerializer._
 
   protected def get(key: DynamoCompositeKey): DataStoreResult[Json] = {
-//    Try {
-//      val result = table.getItem(uniqueKey(key))
-//      Option(result)  //null if not found
-//
-//    } match {
-//      case Success(Some(item)) => parseJson(item.toJSON)
-//      case Success(None) => Left(IDNotFound)
-//      case Failure(e) => Left(handleException(e))
-//    }
-    ???
+    Try {
+      Option(getTableToQuery(key).getItem(uniqueKey(key)))
+    } match {
+      case Success(Some(item)) => parseJson(item.toJson)
+      case Success(None) => Left(IDNotFound)
+      case Failure(e) => Left(handleException(e))
+    }
+
+
   }
 
   protected def put(json: Json): DataStoreResult[Json] = {
@@ -95,13 +114,33 @@ abstract class DynamoDataStoreV2
     ???
   }
 
-  private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey) = ???
-//    dynamoCompositeKey match {
-//    case DynamoCompositeKey(partitionKey, None) =>
-//      new PrimaryKey(SimpleKeyName, partitionKey)
-//    case DynamoCompositeKey(partitionKey, Some(sortKey)) =>
-//      new PrimaryKey(CompositeKey.partitionKey, partitionKey, CompositeKey.sortKey, sortKey)
+
+//  private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey): Map[String, AttributeValue] = dynamoCompositeKey match {
+//    case DynamoCompositeKey(partitionKey, None) => {
+//      Map(SimpleKeyName -> AttributeValue.builder().s(partitionKey).build())
+//    }
+//
+//    case DynamoCompositeKey(partitionKey, Some(sortKey)) =>{
+//      Map(
+//        CompositeKey.partitionKey -> AttributeValue.builder().s(partitionKey).build(),
+//        CompositeKey.sortKey -> AttributeValue.builder().s(sortKey).build()
+//      )
+//    }
 //  }
+  private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey): Key = dynamoCompositeKey match {
+    case DynamoCompositeKey(partitionKey, None) => {
+      Key.builder().partitionValue(partitionKey).build()
+    }
+
+    case DynamoCompositeKey(partitionKey, Some(sortKey)) =>{
+      Key.builder().partitionValue(partitionKey).addSortValue(sortKey).build()
+    }
+  }
+
+  private def getTableToQuery(dynamoCompositeKey: DynamoCompositeKey) = dynamoCompositeKey match {
+    case DynamoCompositeKey(_, None) => table1
+    case DynamoCompositeKey(_, Some(_)) => table2
+  }
 
   def parseJson(s: String): DataStoreResult[Json] =
     parser.parse(s).leftMap(parsingFailure => DynamoError(parsingFailure.getMessage))
@@ -120,14 +159,17 @@ abstract class DynamoDataStoreV2
 
   private def handleException(e: Throwable) = e match {
     case serviceError: AwsServiceException => DynamoError(serviceError.awsErrorDetails().errorMessage)
-    case clientError: SdkException => ClientError(clientError.getMessage)
+    case clientError: SdkException => {
+      ClientError(clientError.getMessage)
+    }
     case other => ReadError
   }
 
   def getAtom(id: String): DataStoreResult[Atom] = getAtom(DynamoCompositeKey(id))
 
-  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] =
+  def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom] = {
     get(dynamoCompositeKey) flatMap jsonToAtom
+  }
 
   def createAtom(atom: Atom): DataStoreResult[Atom] = createAtom(DynamoCompositeKey(atom.id), atom)
 
@@ -155,7 +197,7 @@ abstract class DynamoDataStoreV2
 }
 
 class PreviewDynamoDataStoreV2
-(dynamo: DynamoDbAsyncClient, tableName: String)
+(dynamo: DynamoDbClient, tableName: String)
   extends DynamoDataStoreV2(dynamo, tableName)
   with PreviewDataStore {
 
@@ -166,7 +208,7 @@ class PreviewDynamoDataStoreV2
 }
 
 class PublishedDynamoDataStoreV2
-(dynamo: DynamoDbAsyncClient, tableName: String)
+(dynamo: DynamoDbClient, tableName: String)
   extends DynamoDataStoreV2(dynamo, tableName)
   with PublishedDataStore {
 

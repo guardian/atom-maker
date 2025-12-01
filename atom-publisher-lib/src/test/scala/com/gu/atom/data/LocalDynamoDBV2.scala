@@ -1,9 +1,10 @@
 package com.gu.atom.data
 
+import net.bytebuddy.TypeCache.SimpleKey
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
-import software.amazon.awssdk.services.dynamodb.model.{AttributeDefinition, CreateTableRequest, KeySchemaElement, KeyType, ScalarAttributeType}
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.model.{AttributeDefinition, CreateTableRequest, DeleteTableRequest, DeleteTableResponse, KeySchemaElement, KeyType, ProvisionedThroughput, ScalarAttributeType}
 
 import java.net.URI
 import scala.jdk.CollectionConverters._
@@ -15,7 +16,7 @@ import scala.jdk.CollectionConverters._
 
 object LocalDynamoDBV2 {
   def client() = {
-    DynamoDbAsyncClient.builder()
+    DynamoDbClient.builder()
       .credentialsProvider(StaticCredentialsProvider.create(
         AwsBasicCredentials.create("key", "secret")
       ))
@@ -24,7 +25,7 @@ object LocalDynamoDBV2 {
       .build()
   }
 
-  def createTable(client: DynamoDbAsyncClient)(tableName: String)(attributes: (KeyType, String)*) = {
+  def createTable(client: DynamoDbClient)(tableName: String)(attributes: (KeyType, String)*) = {
     val attrs = attributes.toList.map { case(kt, attrName) => KeySchemaElement.builder().keyType(kt).attributeName(attrName).build()}
     val attributeDefinitions = attributes.toList.map { case(at, attrName) => AttributeDefinition.builder().attributeType(ScalarAttributeType.S).attributeName(attrName).build() }
 
@@ -32,8 +33,13 @@ object LocalDynamoDBV2 {
       .tableName(tableName)
       .keySchema(attrs.asJava)
       .attributeDefinitions(attributeDefinitions.asJava)
+      .provisionedThroughput(ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(1L).build())
       .build()
     client.createTable(createTableRequest)
+  }
+
+  def deleteTable(client: DynamoDbClient)(tableName: String): DeleteTableResponse = {
+    client.deleteTable(DeleteTableRequest.builder().tableName(tableName).build())
   }
 
 
