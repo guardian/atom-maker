@@ -1,7 +1,7 @@
 package com.gu.atom.data
 
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
-import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, ConditionalCheckFailedException, DeleteItemResponse, ItemResponse}
+import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, ConditionalCheckFailedException, DeleteItemRequest, DeleteItemResponse, ItemResponse}
 import software.amazon.awssdk.awscore.exception.AwsServiceException
 import com.gu.contentatom.thrift.Atom
 import cats.implicits._
@@ -19,10 +19,15 @@ abstract class DynamoDataStoreV2
   (dynamo: DynamoDbClient, tableName: String)
     extends AtomDataStore {
 
+  private val SimpleKeyName = "id"
+  private object CompositeKey {
+    val partitionKey = "atomType"
+    val sortKey = "id"
+  }
   lazy val ddb: DynamoDbEnhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamo).build()
 
   lazy val tableSchema1 = TableSchema.documentSchemaBuilder()
-    .addIndexPartitionKey(TableMetadata.primaryIndexName(), "id", AttributeValueType.S)
+    .addIndexPartitionKey(TableMetadata.primaryIndexName(), SimpleKeyName, AttributeValueType.S)
     .attributeConverterProviders(AttributeConverterProvider.defaultProvider())
     .build()
 
@@ -30,17 +35,11 @@ abstract class DynamoDataStoreV2
 
   lazy val tableSchema2 = TableSchema.documentSchemaBuilder()
     .addIndexPartitionKey(TableMetadata.primaryIndexName(), CompositeKey.partitionKey, AttributeValueType.S)
-    .addIndexSortKey("commission-index", CompositeKey.sortKey, AttributeValueType.S)
+    .addIndexSortKey(TableMetadata.primaryIndexName(), CompositeKey.sortKey, AttributeValueType.S)
     .attributeConverterProviders(AttributeConverterProvider.defaultProvider())
     .build()
 
   val table2 = ddb.table(tableName, tableSchema2)
-
-  private val SimpleKeyName = "id"
-  private object CompositeKey {
-    val partitionKey = "atomType"
-    val sortKey = "id"
-  }
 
   import AtomSerializer._
 
@@ -66,13 +65,6 @@ abstract class DynamoDataStoreV2
   protected def putSimple(json: Json): DataStoreResult[Json] = {
     put(json, table1)
   }
-
-
-
-  protected def putComposite(json: Json): DataStoreResult[Json] = {
-    ???
-  }
-
   /**
     * Conditional put, ensuring passed revision is higher than the value in dynamo
     */
@@ -96,31 +88,15 @@ abstract class DynamoDataStoreV2
     }
   }
 
-  protected def delete(key: DynamoCompositeKey): DataStoreResult[DeleteItemResponse] = {
-//    Try {
-//      key match {
-//        case DynamoCompositeKey(partitionKey, None) =>
-//          table.deleteItem(SimpleKeyName, partitionKey)
-//        case DynamoCompositeKey(partitionKey, Some(sortKey)) =>
-//          table.deleteItem(CompositeKey.partitionKey, partitionKey, CompositeKey.sortKey, sortKey)
-//      }
-//    } match {
-//      case Success(outcome) => Right(outcome.getDeleteItemResult)
-//      case Failure(e) => Left(handleException(e))
-//    }
-    ???
+  protected def delete(key: DynamoCompositeKey): DataStoreResult[Unit] = {
+    Try {
+      getTableToQuery(key).deleteItem(uniqueKey(key))
+    } match {
+      case Success(_) => Right(())
+      case Failure(e) => Left(handleException(e))
+    }
   }
 
-  protected def scan: DataStoreResult[List[Json]] = {
-//    Try {
-//      table.scan().iterator.asScala.toList
-//
-//    } match {
-//      case Success(items) => items.traverse(item => parseJson(item.toJSON))
-//      case Failure(e) => Left(DynamoError(e.getMessage))
-//    }
-    ???
-  }
 
   protected def scanSimple: DataStoreResult[List[Json]] = {
     Try {
@@ -130,18 +106,6 @@ abstract class DynamoDataStoreV2
     }
   }
 
-//  private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey): Map[String, AttributeValue] = dynamoCompositeKey match {
-//    case DynamoCompositeKey(partitionKey, None) => {
-//      Map(SimpleKeyName -> AttributeValue.builder().s(partitionKey).build())
-//    }
-//
-//    case DynamoCompositeKey(partitionKey, Some(sortKey)) =>{
-//      Map(
-//        CompositeKey.partitionKey -> AttributeValue.builder().s(partitionKey).build(),
-//        CompositeKey.sortKey -> AttributeValue.builder().s(sortKey).build()
-//      )
-//    }
-//  }
   private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey): Key = dynamoCompositeKey match {
     case DynamoCompositeKey(partitionKey, None) => {
       Key.builder().partitionValue(partitionKey).build()
@@ -163,14 +127,6 @@ abstract class DynamoDataStoreV2
   def jsonToAtom(json: Json): DataStoreResult[Atom] =
     json.as[Atom](backwardsCompatibleAtomDecoder).leftMap(error => DecoderError(error.message))
 
-  def jsonToItem(json: Json): ItemResponse = {
-//    val item = new Item()
-//    json.asObject.foreach { obj =>
-//      obj.toMap.map { case (key, value) => item.withJSON(key, value.noSpaces) }
-//    }
-//    item
-    ???
-  }
 
   private def handleException(e: Throwable) = e match {
     case serviceError: AwsServiceException => DynamoError(serviceError.awsErrorDetails().errorMessage)

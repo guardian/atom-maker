@@ -71,68 +71,68 @@ class DynamoDataStoreV2Spec
     it("should create the atom with composite key") { dataStores =>
       dataStores.compositeKey.createAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id)), testAtom) should equal(Right(testAtom))
     }
-//
-//    it("should return the atom with composite key") { dataStores =>
-//      dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(testAtom))
-//    }
-//
-//    it("should update an atom with composite key") { dataStores =>
-//      val updated = testAtom
-//        .copy(defaultHtml = "<div>updated</div>")
-//        .bumpRevision
-//
-//      dataStores.compositeKey.updateAtom(updated) should equal(Right(updated))
-//      dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(updated))
-//    }
-//
-//    it("should delete an atom if it exists in the table") { dataStores =>
-//      dataStores.preview.createAtom(testAtomForDeletion) should equal(Right(testAtomForDeletion))
-//      dataStores.preview.deleteAtom(testAtomForDeletion.id) should equal(Right(testAtomForDeletion))
-//    }
-//
-//    it("should delete an atom with composite key if it exists in the table") { dataStores =>
-//      val key = DynamoCompositeKey(testAtomForDeletion.atomType.toString, Some(testAtomForDeletion.id))
-//      dataStores.compositeKey.createAtom(key, testAtomForDeletion) should equal(Right(testAtomForDeletion))
-//      dataStores.compositeKey.deleteAtom(key) should equal(Right(testAtomForDeletion))
-//    }
-//
-//    it("should decode the old format from dynamo") { dataStores =>
-//      val json = dataStores.published.parseJson(
-//        """
-//          |{
-//          |  "defaultHtml" : "<div></div>",
-//          |  "data" : {
-//          |    "assets" : [
-//          |      {
-//          |        "id" : "xyzzy",
-//          |        "version" : 1,
-//          |        "platform" : "Youtube",
-//          |        "assetType" : "Video"
-//          |      },
-//          |      {
-//          |        "id" : "fizzbuzz",
-//          |        "version" : 2,
-//          |        "platform" : "Youtube",
-//          |        "assetType" : "Video"
-//          |      }
-//          |    ],
-//          |    "activeVersion" : 2,
-//          |    "title" : "Test atom 1",
-//          |    "category" : "News"
-//          |  },
-//          |  "contentChangeDetails" : {
-//          |    "revision" : 1
-//          |  },
-//          |  "id" : "1",
-//          |  "atomType" : "Media",
-//          |  "labels" : [
-//          |  ]
-//          |}
-//        """.stripMargin).toOption.get
-//
-//      val atom = json.as[Atom](JsonSupport.backwardsCompatibleAtomDecoder)
-//      atom should equal(Right(testAtom))
-//    }
+
+    it("should return the atom with composite key") { dataStores =>
+      dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(testAtom))
+    }
+
+    it("should update an atom with composite key") { dataStores =>
+      val updated = testAtom
+        .copy(defaultHtml = "<div>updated</div>")
+        .bumpRevision
+
+      dataStores.compositeKey.updateAtom(updated) should equal(Right(updated))
+      dataStores.compositeKey.getAtom(DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))) should equal(Right(updated))
+    }
+
+    it("should delete an atom if it exists in the table") { dataStores =>
+      dataStores.preview.createAtom(testAtomForDeletion) should equal(Right(testAtomForDeletion))
+      dataStores.preview.deleteAtom(testAtomForDeletion.id) should equal(Right(testAtomForDeletion))
+    }
+
+    it("should delete an atom with composite key if it exists in the table") { dataStores =>
+      val key = DynamoCompositeKey(testAtomForDeletion.atomType.toString, Some(testAtomForDeletion.id))
+      dataStores.compositeKey.createAtom(key, testAtomForDeletion) should equal(Right(testAtomForDeletion))
+      dataStores.compositeKey.deleteAtom(key) should equal(Right(testAtomForDeletion))
+    }
+
+    it("should decode the old format from dynamo") { dataStores =>
+      val json = dataStores.published.parseJson(
+        """
+          |{
+          |  "defaultHtml" : "<div></div>",
+          |  "data" : {
+          |    "assets" : [
+          |      {
+          |        "id" : "xyzzy",
+          |        "version" : 1,
+          |        "platform" : "Youtube",
+          |        "assetType" : "Video"
+          |      },
+          |      {
+          |        "id" : "fizzbuzz",
+          |        "version" : 2,
+          |        "platform" : "Youtube",
+          |        "assetType" : "Video"
+          |      }
+          |    ],
+          |    "activeVersion" : 2,
+          |    "title" : "Test atom 1",
+          |    "category" : "News"
+          |  },
+          |  "contentChangeDetails" : {
+          |    "revision" : 1
+          |  },
+          |  "id" : "1",
+          |  "atomType" : "Media",
+          |  "labels" : [
+          |  ]
+          |}
+        """.stripMargin).toOption.get
+
+      val atom = json.as[Atom](JsonSupport.backwardsCompatibleAtomDecoder)
+      atom should equal(Right(testAtom))
+    }
   }
   val client = LocalDynamoDBV2.client()
   override def beforeAll() = {
