@@ -50,14 +50,14 @@ class DynamoDataStoreV2Spec
       dataStores.preview.getAtom(testAtom.id) should equal(Right(testAtom))
     }
 
-//    it("should update the atom") { dataStores =>
-//      val updated = testAtom
-//        .copy(defaultHtml = "<div>updated</div>")
-//        .bumpRevision
-//
-//      dataStores.preview.updateAtom(updated) should equal(Right(updated))
-//      dataStores.preview.getAtom(testAtom.id) should equal(Right(updated))
-//    }
+    it("should update the atom") { dataStores =>
+      val updated = testAtom
+        .copy(defaultHtml = "<div>updated</div>")
+        .bumpRevision
+
+      dataStores.preview.updateAtom(updated) should equal(Right(updated))
+      dataStores.preview.getAtom(testAtom.id) should equal(Right(updated))
+    }
 //
 //    it("should update a published atom") { dataStores =>
 //      val updated = testAtom

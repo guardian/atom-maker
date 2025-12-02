@@ -1,7 +1,7 @@
 package com.gu.atom.data
 
-import software.amazon.awssdk.services.dynamodb.{DynamoDbAsyncClient, DynamoDbClient}
-import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, DeleteItemResponse, DescribeTableRequest, GetItemRequest, ItemResponse}
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, DeleteItemResponse, ItemResponse, ConditionalCheckFailedException}
 import software.amazon.awssdk.awscore.exception.AwsServiceException
 import com.gu.contentatom.thrift.Atom
 import cats.implicits._
@@ -9,9 +9,11 @@ import io.circe._
 import com.gu.atom.util.JsonSupport.backwardsCompatibleAtomDecoder
 import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest
 import software.amazon.awssdk.enhanced.dynamodb.{AttributeConverterProvider, AttributeValueType, DynamoDbEnhancedClient, Key, TableMetadata, TableSchema}
+import software.amazon.awssdk.enhanced.dynamodb.Expression
 
-import scala.jdk.CollectionConverters.{CollectionHasAsScala, IteratorHasAsScala}
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, IteratorHasAsScala, MapHasAsJava}
 import scala.util.{Failure, Success, Try}
 
 abstract class DynamoDataStoreV2
@@ -51,8 +53,6 @@ abstract class DynamoDataStoreV2
       case Success(None) => Left(IDNotFound)
       case Failure(e) => Left(handleException(e))
     }
-
-
   }
 
   protected def put(json: Json): DataStoreResult[Json] = {
@@ -76,24 +76,24 @@ abstract class DynamoDataStoreV2
   /**
     * Conditional put, ensuring passed revision is higher than the value in dynamo
     */
-  protected def put(json: Json, revision: Long): DataStoreResult[Json] = {
-//    val expressionAttributeValues = new util.HashMap[String, Object]()
-//    expressionAttributeValues.put(":revision", revision.asInstanceOf[Object])
-//
-//    Try {
-//      table.putItem(
-//        jsonToItem(json),
-//        "contentChangeDetails.revision < :revision",
-//        null,
-//        expressionAttributeValues
-//      )
-//    } match {
-//      case Success(_) => Right(json)
-//      case Failure(conditionError: ConditionalCheckFailedException) =>
-//        Left(VersionConflictError(revision))
-//      case Failure(e) => Left(handleException(e))
-//    }
-    ???
+  protected def putSimple(json: Json, revision: Long): DataStoreResult[Json] = {
+    val expressionAttrValues = Map[String, AttributeValue](":revision" -> AttributeValue.builder().n(revision.toString).build())
+    val expression = Expression.builder().expression("contentChangeDetails.revision < :revision").expressionValues(expressionAttrValues.asJava).build()
+    val doc = EnhancedDocument.fromJson(json.spaces2)
+    val putItemRequest = PutItemEnhancedRequest
+        .builder(classOf[EnhancedDocument])
+        .item(doc)
+        .conditionExpression(expression)
+        .build()
+    Try {
+      table1.putItem(putItemRequest)
+    }
+    match {
+      case Success(item) => Right(json)
+      case Failure(conditionError: ConditionalCheckFailedException) =>
+        Left(VersionConflictError(revision))
+      case Failure(e) => Left(handleException(e))
+    }
   }
 
   protected def delete(key: DynamoCompositeKey): DataStoreResult[DeleteItemResponse] = {
@@ -219,7 +219,7 @@ class PreviewDynamoDataStoreV2
   import AtomSerializer._
 
   def updateAtom(newAtom: Atom) =
-    put(toJson(newAtom), newAtom.contentChangeDetails.revision).map(_ => newAtom)
+    putSimple(toJson(newAtom), newAtom.contentChangeDetails.revision).map(_ => newAtom)
 }
 
 class PublishedDynamoDataStoreV2

@@ -1,6 +1,5 @@
 package com.gu.atom.data
 
-import net.bytebuddy.TypeCache.SimpleKey
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
@@ -42,17 +41,4 @@ object LocalDynamoDBV2 {
     client.deleteTable(DeleteTableRequest.builder().tableName(tableName).build())
   }
 
-
-
-//  private def keySchema(attributes: Seq[(Symbol, ScalarAttributeType)]) = {
-//    val hashKeyWithType :: rangeKeyWithType = attributes.toList
-//    val keySchemas = hashKeyWithType._1 -> KeyType.HASH :: rangeKeyWithType.map(_._1 -> KeyType.RANGE)
-//    keySchemas.map{ case (symbol, keyType) => new KeySchemaElement(symbol.name, keyType)}.asJava
-//  }
-//
-//  private def attributeDefinitions(attributes: Seq[(Symbol, ScalarAttributeType)]) = {
-//    attributes.map{ case (symbol, attributeType) => new AttributeDefinition(symbol.name, attributeType)}.asJava
-//  }
-//
-//  private val arbitraryThroughputThatIsIgnoredByDynamoDBLocal = new ProvisionedThroughput(1L, 1L)
 }
