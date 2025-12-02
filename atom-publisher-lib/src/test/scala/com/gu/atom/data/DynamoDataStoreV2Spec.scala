@@ -34,15 +34,17 @@ class DynamoDataStoreV2Spec
   }
 
   describe("DynamoDataStore") {
-//    it("should create a new atom") { dataStores =>
-//      dataStores.preview.createAtom(testAtom) should equal(Right(testAtom))
-//    }
-//
-//    it("should list all atoms of all types") { dataStores =>
-//      dataStores.preview.createAtom(testAtoms(1))
-//      dataStores.preview.createAtom(testAtoms(2))
-//      dataStores.preview.listAtoms.map(_.toList).fold(identity, res => res should contain theSameElementsAs testAtoms)
-//    }
+    it("should create a new atom") { dataStores =>
+      val atomCreated = dataStores.preview.createAtom(testAtom)
+      println(dataStores.preview.listAtoms.map(as => as.map(a => a.id)))
+      atomCreated should equal(Right(testAtom))
+    }
+
+    it("should list all atoms of all types") { dataStores =>
+      dataStores.preview.createAtom(testAtoms(1))
+      dataStores.preview.createAtom(testAtoms(2))
+      dataStores.preview.listAtoms.map(_.toList).fold(identity, res => res should contain theSameElementsAs testAtoms)
+    }
 
     it("should return the atom") { dataStores =>
       dataStores.preview.getAtom(testAtom.id) should equal(Right(testAtom))

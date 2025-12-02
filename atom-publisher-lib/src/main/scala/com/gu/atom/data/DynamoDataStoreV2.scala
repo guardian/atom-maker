@@ -7,13 +7,11 @@ import com.gu.contentatom.thrift.Atom
 import cats.implicits._
 import io.circe._
 import com.gu.atom.util.JsonSupport.backwardsCompatibleAtomDecoder
-import io.circe.syntax.EncoderOps
 import software.amazon.awssdk.core.exception.SdkException
-import software.amazon.awssdk.enhanced.dynamodb.TableMetadata.primaryIndexName
-import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest
+import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument
 import software.amazon.awssdk.enhanced.dynamodb.{AttributeConverterProvider, AttributeValueType, DynamoDbEnhancedClient, Key, TableMetadata, TableSchema}
 
-import scala.jdk.CollectionConverters.MapHasAsJava
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, IteratorHasAsScala}
 import scala.util.{Failure, Success, Try}
 
 abstract class DynamoDataStoreV2
@@ -58,10 +56,20 @@ abstract class DynamoDataStoreV2
   }
 
   protected def put(json: Json): DataStoreResult[Json] = {
-//    Try(table.putItem(jsonToItem(json))) match {
-//      case Success(_) => Right(json)
-//      case Failure(e) => Left(handleException(e))
-//    }
+    ???
+  }
+
+
+  protected def putSimple(json: Json): DataStoreResult[Json] = {
+    Try(table1.putItem(
+      EnhancedDocument.builder().json(json.spaces2).build()
+    )) match {
+      case Success(_) => Right(json)
+      case Failure(e) => Left(handleException(e))
+    }
+  }
+
+  protected def putComposite(json: Json): DataStoreResult[Json] = {
     ???
   }
 
@@ -114,6 +122,13 @@ abstract class DynamoDataStoreV2
     ???
   }
 
+  protected def scanSimple: DataStoreResult[List[Json]] = {
+    Try {
+      table1.scan().iterator().asScala.toList
+    } match {
+      case Success(page) => page.flatMap(p => p.items().asScala.map(i => parseJson(i.toJson))).sequence
+    }
+  }
 
 //  private def uniqueKey(dynamoCompositeKey: DynamoCompositeKey): Map[String, AttributeValue] = dynamoCompositeKey match {
 //    case DynamoCompositeKey(partitionKey, None) => {
@@ -178,7 +193,7 @@ abstract class DynamoDataStoreV2
       case Right(_) =>
         Left(IDConflictError)
       case Left(error) =>
-        put(toJson(atom)).map(_ => atom)
+        putSimple(toJson(atom)).map(_ => atom)
     }
   }
 
@@ -190,7 +205,7 @@ abstract class DynamoDataStoreV2
     }
 
   private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
-    scan.flatMap(_.traverse(jsonToAtom))
+    scanSimple.flatMap(_.traverse(jsonToAtom))
 
   def listAtoms: DataStoreResult[List[Atom]] = findAtoms(tableName)
 
