@@ -1,7 +1,7 @@
 package com.gu.atom.data
 
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
-import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, DeleteItemResponse, ItemResponse, ConditionalCheckFailedException}
+import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, ConditionalCheckFailedException, DeleteItemResponse, ItemResponse}
 import software.amazon.awssdk.awscore.exception.AwsServiceException
 import com.gu.contentatom.thrift.Atom
 import cats.implicits._
@@ -10,8 +10,7 @@ import com.gu.atom.util.JsonSupport.backwardsCompatibleAtomDecoder
 import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest
-import software.amazon.awssdk.enhanced.dynamodb.{AttributeConverterProvider, AttributeValueType, DynamoDbEnhancedClient, Key, TableMetadata, TableSchema}
-import software.amazon.awssdk.enhanced.dynamodb.Expression
+import software.amazon.awssdk.enhanced.dynamodb.{AttributeConverterProvider, AttributeValueType, DynamoDbEnhancedClient, DynamoDbTable, Expression, Key, TableMetadata, TableSchema}
 
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IteratorHasAsScala, MapHasAsJava}
 import scala.util.{Failure, Success, Try}
@@ -55,19 +54,20 @@ abstract class DynamoDataStoreV2
     }
   }
 
-  protected def put(json: Json): DataStoreResult[Json] = {
-    ???
-  }
-
-
-  protected def putSimple(json: Json): DataStoreResult[Json] = {
-    Try(table1.putItem(
+  protected def put(json: Json, table: DynamoDbTable[EnhancedDocument]): DataStoreResult[Json] = {
+    Try(table.putItem(
       EnhancedDocument.builder().json(json.spaces2).build()
     )) match {
       case Success(_) => Right(json)
       case Failure(e) => Left(handleException(e))
     }
   }
+
+  protected def putSimple(json: Json): DataStoreResult[Json] = {
+    put(json, table1)
+  }
+
+
 
   protected def putComposite(json: Json): DataStoreResult[Json] = {
     ???
@@ -193,7 +193,8 @@ abstract class DynamoDataStoreV2
       case Right(_) =>
         Left(IDConflictError)
       case Left(error) =>
-        putSimple(toJson(atom)).map(_ => atom)
+        val table = getTableToQuery(dynamoCompositeKey)
+        put(toJson(atom), table).map(_ => atom)
     }
   }
 
@@ -229,6 +230,6 @@ class PublishedDynamoDataStoreV2
 
   import AtomSerializer._
 
-  def updateAtom(newAtom: Atom) = put(toJson(newAtom)).map(_ => newAtom)
+  def updateAtom(newAtom: Atom) = putSimple(toJson(newAtom)).map(_ => newAtom)
 }
 
