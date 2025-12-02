@@ -4,10 +4,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.{
   AttributeValue,
   ConditionalCheckFailedException,
-  DeleteItemRequest,
-  DeleteItemResponse,
   DescribeTableRequest,
-  ItemResponse,
   KeyType
 }
 import software.amazon.awssdk.awscore.exception.AwsServiceException
@@ -22,7 +19,6 @@ import software.amazon.awssdk.enhanced.dynamodb.{
   AttributeConverterProvider,
   AttributeValueType,
   DynamoDbEnhancedClient,
-  DynamoDbTable,
   Expression,
   Key,
   TableMetadata,
@@ -179,7 +175,7 @@ abstract class DynamoDataStoreV2(dynamo: DynamoDbClient, tableName: String)
     case clientError: SdkException => {
       ClientError(clientError.getMessage)
     }
-    case other => ReadError
+    case _ => ReadError
   }
 
   def getAtom(id: String): DataStoreResult[Atom] = getAtom(
@@ -200,7 +196,7 @@ abstract class DynamoDataStoreV2(dynamo: DynamoDbClient, tableName: String)
     getAtom(dynamoCompositeKey) match {
       case Right(_) =>
         Left(IDConflictError)
-      case Left(error) =>
+      case Left(_) =>
         put(toJson(atom)).map(_ => atom)
     }
   }
@@ -216,10 +212,8 @@ abstract class DynamoDataStoreV2(dynamo: DynamoDbClient, tableName: String)
       delete(dynamoCompositeKey).map(_ => atom)
     }
 
-  private def findAtoms(tableName: String): DataStoreResult[List[Atom]] =
-    scan.flatMap(_.traverse(jsonToAtom))
 
-  def listAtoms: DataStoreResult[List[Atom]] = findAtoms(tableName)
+  def listAtoms: DataStoreResult[List[Atom]] = scan.flatMap(_.traverse(jsonToAtom))
 
 }
 
