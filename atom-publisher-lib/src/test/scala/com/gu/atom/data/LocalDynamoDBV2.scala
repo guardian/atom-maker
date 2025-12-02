@@ -1,9 +1,21 @@
 package com.gu.atom.data
 
-import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
+import software.amazon.awssdk.auth.credentials.{
+  AwsBasicCredentials,
+  StaticCredentialsProvider
+}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
-import software.amazon.awssdk.services.dynamodb.model.{AttributeDefinition, CreateTableRequest, DeleteTableRequest, DeleteTableResponse, KeySchemaElement, KeyType, ProvisionedThroughput, ScalarAttributeType}
+import software.amazon.awssdk.services.dynamodb.model.{
+  AttributeDefinition,
+  CreateTableRequest,
+  DeleteTableRequest,
+  DeleteTableResponse,
+  KeySchemaElement,
+  KeyType,
+  ProvisionedThroughput,
+  ScalarAttributeType
+}
 
 import java.net.URI
 import scala.jdk.CollectionConverters._
@@ -15,30 +27,54 @@ import scala.jdk.CollectionConverters._
 
 object LocalDynamoDBV2 {
   def client() = {
-    DynamoDbClient.builder()
-      .credentialsProvider(StaticCredentialsProvider.create(
-        AwsBasicCredentials.create("key", "secret")
-      ))
+    DynamoDbClient
+      .builder()
+      .credentialsProvider(
+        StaticCredentialsProvider.create(
+          AwsBasicCredentials.create("key", "secret")
+        )
+      )
       .endpointOverride(URI.create("http://localhost:8000"))
       .region(Region.EU_WEST_1)
       .build()
   }
 
-  def createTable(client: DynamoDbClient)(tableName: String)(attributes: (KeyType, String)*) = {
-    val attrs = attributes.toList.map { case(kt, attrName) => KeySchemaElement.builder().keyType(kt).attributeName(attrName).build()}
-    val attributeDefinitions = attributes.toList.map { case(at, attrName) => AttributeDefinition.builder().attributeType(ScalarAttributeType.S).attributeName(attrName).build() }
+  def createTable(
+      client: DynamoDbClient
+  )(tableName: String)(attributes: (KeyType, String)*) = {
+    val attrs = attributes.toList.map { case (kt, attrName) =>
+      KeySchemaElement.builder().keyType(kt).attributeName(attrName).build()
+    }
+    val attributeDefinitions = attributes.toList.map { case (at, attrName) =>
+      AttributeDefinition
+        .builder()
+        .attributeType(ScalarAttributeType.S)
+        .attributeName(attrName)
+        .build()
+    }
 
-    val createTableRequest = CreateTableRequest.builder()
+    val createTableRequest = CreateTableRequest
+      .builder()
       .tableName(tableName)
       .keySchema(attrs.asJava)
       .attributeDefinitions(attributeDefinitions.asJava)
-      .provisionedThroughput(ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(1L).build())
+      .provisionedThroughput(
+        ProvisionedThroughput
+          .builder()
+          .readCapacityUnits(1L)
+          .writeCapacityUnits(1L)
+          .build()
+      )
       .build()
     client.createTable(createTableRequest)
   }
 
-  def deleteTable(client: DynamoDbClient)(tableName: String): DeleteTableResponse = {
-    client.deleteTable(DeleteTableRequest.builder().tableName(tableName).build())
+  def deleteTable(
+      client: DynamoDbClient
+  )(tableName: String): DeleteTableResponse = {
+    client.deleteTable(
+      DeleteTableRequest.builder().tableName(tableName).build()
+    )
   }
 
 }
