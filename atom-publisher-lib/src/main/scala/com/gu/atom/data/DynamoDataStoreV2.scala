@@ -147,6 +147,7 @@ abstract class DynamoDataStoreV2(dynamo: DynamoDbClient, tableName: String)
         page
           .flatMap(p => p.items().asScala.map(i => parseJson(i.toJson)))
           .sequence
+      case Failure(e) => Left(DynamoError(e.getMessage))
     }
   }
 
