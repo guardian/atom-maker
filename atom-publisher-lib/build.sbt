@@ -1,7 +1,6 @@
 import BuildVars._
 
 name := "atom-publisher-lib"
-
 // for testing dynamodb access
 dynamoDBLocalDownloadDir := file(".dynamodb-local")
 startDynamoDBLocal := startDynamoDBLocal.dependsOn(Test / compile).value
@@ -26,5 +25,7 @@ libraryDependencies ++= Seq(
   "org.mockito"                %  "mockito-core"          % mockitoVersion % Test,
   "org.scalatestplus"          %% "mockito-4-6"           % "3.2.14.0" % Test,
   "org.scalatest"              %% "scalatest"             % "3.2.14" % Test,
-  "software.amazon.awssdk"     % "kinesis"                % "2.39.4"
+  "software.amazon.awssdk"     % "kinesis"                % awsV2Version,
+  "software.amazon.awssdk"     % "dynamodb"               % awsV2Version,
+  "software.amazon.awssdk"     % "dynamodb-enhanced"      % awsV2Version
 )
