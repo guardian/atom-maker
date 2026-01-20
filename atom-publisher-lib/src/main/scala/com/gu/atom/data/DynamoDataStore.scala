@@ -8,7 +8,6 @@ import com.amazonaws.services.dynamodbv2.model.{ConditionalCheckFailedException,
 import com.amazonaws.{AmazonClientException, AmazonServiceException}
 import com.gu.contentatom.thrift.Atom
 import cats.implicits._
-import cats.syntax.either._
 import io.circe._
 import io.circe.syntax._
 import com.gu.fezziwig.CirceScroogeMacros.{encodeThriftStruct, encodeThriftUnion}
@@ -16,11 +15,6 @@ import com.gu.atom.util.JsonSupport.{backwardsCompatibleAtomDecoder, thriftEnumE
 
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
-
-object AtomSerializer {
-
-  def toJson(newAtom: Atom): Json = newAtom.asJson
-}
 
 abstract class DynamoDataStore
   (dynamo: AmazonDynamoDB, tableName: String)
