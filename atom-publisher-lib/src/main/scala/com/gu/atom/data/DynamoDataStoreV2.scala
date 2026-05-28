@@ -1,12 +1,7 @@
 package com.gu.atom.data
 
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
-import software.amazon.awssdk.services.dynamodb.model.{
-  AttributeValue,
-  ConditionalCheckFailedException,
-  DescribeTableRequest,
-  KeyType
-}
+import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, ConditionalCheckFailedException, DescribeTableRequest, KeyType, ScanRequest}
 import software.amazon.awssdk.awscore.exception.AwsServiceException
 import com.gu.contentatom.thrift.Atom
 import cats.implicits._
@@ -14,22 +9,11 @@ import io.circe._
 import com.gu.atom.util.JsonSupport.backwardsCompatibleAtomDecoder
 import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument
-import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest
-import software.amazon.awssdk.enhanced.dynamodb.{
-  AttributeConverterProvider,
-  AttributeValueType,
-  DynamoDbEnhancedClient,
-  Expression,
-  Key,
-  TableMetadata,
-  TableSchema
-}
+import software.amazon.awssdk.enhanced.dynamodb.model.{PutItemEnhancedRequest, ScanEnhancedRequest}
+import software.amazon.awssdk.enhanced.dynamodb.{AttributeConverterProvider, AttributeValueType, DynamoDbEnhancedClient, Expression, Key, TableMetadata, TableSchema}
 
-import scala.jdk.CollectionConverters.{
-  CollectionHasAsScala,
-  IteratorHasAsScala,
-  MapHasAsJava
-}
+import java.util
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, IteratorHasAsScala, MapHasAsJava}
 import scala.util.{Failure, Success, Try}
 
 abstract class DynamoDataStoreV2(dynamo: DynamoDbClient, tableName: String)
@@ -143,8 +127,8 @@ abstract class DynamoDataStoreV2(dynamo: DynamoDbClient, tableName: String)
     Try {
       table.scan().iterator().asScala.toList
     } match {
-      case Success(page) =>
-        page
+      case Success(pages) =>
+        pages
           .flatMap(p => p.items().asScala.map(i => parseJson(i.toJson)))
           .sequence
       case Failure(e) => Left(DynamoError(e.getMessage))
@@ -216,6 +200,45 @@ abstract class DynamoDataStoreV2(dynamo: DynamoDbClient, tableName: String)
 
   def listAtoms: DataStoreResult[List[Atom]] = scan.flatMap(_.traverse(jsonToAtom))
 
+  override def itemCount: DataStoreResult[Long] = {
+    Try {
+      table.describeTable().table().itemCount()
+    } match {
+      case Success(count) => Right(count)
+      case Failure(e) => Left(handleException(e))
+    }
+  }
+
+  override def scanPage(maybeExclusiveStartKey: Option[ContinuationKey]): DataStoreResult[(List[Atom], Option[ContinuationKey])] = {
+    val scanAllQuery = ScanEnhancedRequest
+      .builder()
+      .exclusiveStartKey(maybeExclusiveStartKey.orNull)
+      .limit(100)
+      .build()
+
+    val scanResponse = table.scan(scanAllQuery)
+
+    val page = scanResponse
+      .iterator()
+      .asScala
+      .nextOption()
+
+    page match {
+      case None => Right((Nil, None))
+      case Some(page) =>
+        val lastEvaluatedKey = if (!page.lastEvaluatedKey().isEmpty)
+          Some(page.lastEvaluatedKey())
+        else
+          None
+        page
+          .items()
+          .asScala
+          .toList
+          .traverse(doc => parseJson(doc.toJson).flatMap(jsonToAtom))
+          .map(atoms => (atoms, lastEvaluatedKey))
+    }
+
+  }
 }
 
 class PreviewDynamoDataStoreV2(dynamo: DynamoDbClient, tableName: String)
