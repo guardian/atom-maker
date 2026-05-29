@@ -13,7 +13,7 @@ import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class KinesisAtomReindexerV2(
+abstract class KinesisAtomReindexerV2(
   streamName: String,
   kinesis: KinesisClient,
   atomDataStore: AtomDataStore,
