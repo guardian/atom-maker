@@ -226,10 +226,7 @@ abstract class DynamoDataStoreV2(dynamo: DynamoDbClient, tableName: String)
     page match {
       case None => Right((Nil, None))
       case Some(page) =>
-        val lastEvaluatedKey = if (!page.lastEvaluatedKey().isEmpty)
-          Some(page.lastEvaluatedKey())
-        else
-          None
+        val lastEvaluatedKey = Option(page.lastEvaluatedKey).filterNot(_.isEmpty)
         page
           .items()
           .asScala
