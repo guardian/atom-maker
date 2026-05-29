@@ -216,25 +216,21 @@ abstract class DynamoDataStoreV2(dynamo: DynamoDbClient, tableName: String)
       .limit(100)
       .build()
 
-    val scanResponse = table.scan(scanAllQuery)
-
-    val page = scanResponse
-      .iterator()
-      .asScala
-      .nextOption()
-
-    page match {
-      case None => Right((Nil, None))
-      case Some(page) =>
-        val lastEvaluatedKey = Option(page.lastEvaluatedKey).filterNot(_.isEmpty)
-        page
-          .items()
-          .asScala
-          .toList
-          .traverse(doc => parseJson(doc.toJson).flatMap(jsonToAtom))
-          .map(atoms => (atoms, lastEvaluatedKey))
+    Try { table.scan(scanAllQuery).iterator().asScala.nextOption() } match {
+      case Failure(error) => Left(DynamoError(error.getMessage))
+      case Success(page) =>
+        page match {
+          case None => Right((Nil, None))
+          case Some(page) =>
+            val lastEvaluatedKey = Option(page.lastEvaluatedKey).filterNot(_.isEmpty)
+            page
+              .items()
+              .asScala
+              .toList
+              .traverse(doc => parseJson(doc.toJson).flatMap(jsonToAtom))
+              .map(atoms => (atoms, lastEvaluatedKey))
+        }
     }
-
   }
 }
 
