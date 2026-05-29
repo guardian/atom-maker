@@ -77,7 +77,7 @@ abstract class KinesisAtomReindexerV2(
     Future {
       scan(reindexJob, lastEvaluatedKey = None) match {
         case Some(finalJob) =>
-          logger.info(s"Reindex ended with status '${finalJob.status} and ${finalJob.documentsIndexed} of estimated ${finalJob.documentsExpected} atoms reindexed")
+          logger.info(s"Reindex ended with status '${finalJob.status}' and ${finalJob.documentsIndexed} of estimated ${finalJob.documentsExpected} atoms reindexed")
         case None =>
 
       }
