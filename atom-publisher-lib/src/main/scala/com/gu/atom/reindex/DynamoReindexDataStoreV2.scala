@@ -126,19 +126,26 @@ class DynamoReindexDataStoreV2(
       reindexJob.copy(
         status = setTo
       )
-    val putItemRequest = PutItemRequest
-      .builder()
+
+    val putCompletedJob = Put.builder()
       .tableName(tableName)
       .item(itemFor(completedJob).asJava)
       .build()
-    dynamoDbClient.putItem(putItemRequest)
 
-    val deleteItemRequest = DeleteItemRequest
-      .builder()
+    val deleteInProgressJob = Delete.builder()
       .tableName(tableName)
       .key(keyFor(ReindexJob.inProgress).asJava)
       .build()
-    dynamoDbClient.deleteItem(deleteItemRequest)
+
+    val transaction = TransactWriteItemsRequest.builder()
+      .transactItems(
+        TransactWriteItem.builder().put(putCompletedJob).build(),
+        TransactWriteItem.builder().delete(deleteInProgressJob).build()
+      )
+      .build()
+
+    dynamoDbClient.transactWriteItems(transaction)
+
     completedJob
   }
 
