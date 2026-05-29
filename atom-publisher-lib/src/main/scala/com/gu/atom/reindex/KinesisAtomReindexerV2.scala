@@ -75,10 +75,12 @@ abstract class KinesisAtomReindexerV2(
     reindexJob: ReindexJob
   )(implicit ec: ExecutionContext) = {
     Future {
-      val totalIndexedDocs = scan(reindexJob, lastEvaluatedKey = None, documentsIndexed = 0)
-      reindexDataStore.markComplete(
-        reindexJob.copy(documentsIndexed = totalIndexedDocs)
-      )
+      scan(reindexJob, lastEvaluatedKey = None) match {
+        case Some(finalJob) =>
+          logger.info(s"Reindex ended with status '${finalJob.status} and ${finalJob.documentsIndexed} of estimated ${finalJob.documentsExpected} atoms reindexed")
+        case None =>
+
+      }
     }
   }
 
@@ -86,30 +88,36 @@ abstract class KinesisAtomReindexerV2(
   private def scan(
     reindexJob: ReindexJob,
     lastEvaluatedKey: Option[atomDataStore.ContinuationKey],
-    documentsIndexed: Long
-  ): Long = {
+  ): Option[ReindexJob] = {
     if (reindexDataStore.getInProgress().isEmpty) {
       logger.info("Stopping reindex as there is no in progress job anymore; probably cancelled")
-      documentsIndexed
+      None
     } else {
       logger.info("Continuing reindex loop")
-      val scanPage = atomDataStore.scanPage(lastEvaluatedKey)
-      scanPage match {
-        case Left(e) =>
-          // TODO e
-          reindexDataStore.markFailed(reindexJob)
-          documentsIndexed
-        case Right((atoms, continuationKey)) =>
+
+      val atomReindexCompletion = atomDataStore.scanPage(lastEvaluatedKey)
+        .flatMap { case (atoms, continuationKey) => Try {
           for (atom <- atoms) sendForReindex(atom)
-          val newTotal = documentsIndexed + atoms.size
+        } match {
+          case Success(()) => Right((atoms, continuationKey))
+          case Failure(e) => Left(e)
+        }}
+
+      atomReindexCompletion match {
+        case Left(e) =>
+          logger.error(s"Reindex failed after ${reindexJob.documentsIndexed} atoms reindexed", e)
+          Some(reindexDataStore.markFailed(reindexJob))
+        case Right((atoms, continuationKey)) =>
+          val newTotal = reindexJob.documentsIndexed + atoms.size
           logger.info(s"${atoms.size} atoms reindexed, bringing us to a total of $newTotal")
           reindexDataStore.recordProgress(newTotal)
 
           if (continuationKey.isEmpty) {
             logger.info("No more atoms to reindex, exiting loop")
-            newTotal
+            val jobFinal = reindexJob.copy(documentsIndexed = newTotal)
+            Some(reindexDataStore.markComplete(jobFinal))
           } else {
-            scan(reindexJob, continuationKey, newTotal)
+            scan(reindexJob.copy(documentsIndexed = newTotal), continuationKey)
           }
       }
     }
