@@ -6,7 +6,6 @@ libraryDependencies ++= Seq(
   "org.playframework"      %% "play"                  % playVersion,
   "com.gu"                 %% "content-atom-model"    % contentAtomVersion,
   "org.scalatestplus.play" %% "scalatestplus-play"    % "7.0.1" % Test,
-  "com.amazonaws"          %  "aws-java-sdk-dynamodb" % awsVersion,
   "org.mockito"            %  "mockito-core"          % mockitoVersion % Test,
   "org.playframework"      %% "play-test"             % playVersion % Test
 )

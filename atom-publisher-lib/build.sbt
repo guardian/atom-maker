@@ -17,8 +17,6 @@ libraryDependencies ++= Seq(
   "io.circe"                   %% "circe-parser"          % "0.14.3",
   "com.gu"                     %% "fezziwig"              % "1.9.2",
   "com.gu"                     %% "content-atom-model"    % contentAtomVersion,
-  "com.amazonaws"              %  "aws-java-sdk-dynamodb" % awsVersion,
-  "com.amazonaws"              %  "aws-java-sdk-kinesis"  % awsVersion,
   "com.typesafe.scala-logging" %% "scala-logging"         % "3.9.5",
   "com.twitter"                %% "scrooge-serializer"    % scroogeVersion,
   "com.twitter"                %% "scrooge-core"          % scroogeVersion,
