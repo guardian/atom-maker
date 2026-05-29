@@ -4,7 +4,7 @@ import com.gu.atom.data.LocalDynamoDBV2
 import com.gu.atom.util.AtomImplicitsGeneral
 import org.scalatest.funspec.FixtureAnyFunSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterEach, EitherValues, OptionValues}
+import org.scalatest.{EitherValues, OptionValues}
 import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, KeyType, PutItemRequest, ScanRequest}
 
 import java.time.Instant
@@ -15,26 +15,23 @@ class DynamoReindexDataStoreV2Spec
     with Matchers
     with OptionValues
     with EitherValues
-    with BeforeAndAfterEach
     with AtomImplicitsGeneral {
 
   val client = LocalDynamoDBV2.client()
-  override def beforeEach() = {
-    LocalDynamoDBV2.createTable(client)(tableName)(KeyType.HASH -> "jobStatus")
-  }
-
-  override def afterEach(): Unit = {
-    LocalDynamoDBV2.deleteTable(client)(tableName)
-  }
 
   val tableName = "atom-reindex-test"
   override type FixtureParam = ReindexDataStore
 
   override def withFixture(test: OneArgTest) = {
+    LocalDynamoDBV2.createTable(client)(tableName)(KeyType.HASH -> "jobStatus")
+
     val reindexDb = new DynamoReindexDataStoreV2(LocalDynamoDBV2.client(), tableName)
-    super.withFixture(
-      test.toNoArgTest(reindexDb)
-    )
+
+    try {
+      super.withFixture(test.toNoArgTest(reindexDb))
+    } finally {
+      LocalDynamoDBV2.deleteTable(client)(tableName)
+    }
   }
 
   describe("Reindex data store") {

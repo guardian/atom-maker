@@ -5,7 +5,7 @@ import com.gu.atom.util.{AtomImplicitsGeneral, JsonSupport}
 import com.gu.contentatom.thrift.Atom
 import org.scalatest.funspec.FixtureAnyFunSpec
 import org.scalatest.matchers.should._
-import org.scalatest.{BeforeAndAfterEach, EitherValues, OptionValues}
+import org.scalatest.{EitherValues, OptionValues}
 import software.amazon.awssdk.services.dynamodb.model.KeyType
 
 class DynamoDataStoreV2Spec
@@ -13,7 +13,6 @@ class DynamoDataStoreV2Spec
     with Matchers
     with OptionValues
     with EitherValues
-    with BeforeAndAfterEach
     with AtomImplicitsGeneral {
 
   val tableName = "atom-test-table"
@@ -29,6 +28,15 @@ class DynamoDataStoreV2Spec
   type FixtureParam = DataStoresV2
 
   def withFixture(test: OneArgTest) = {
+    LocalDynamoDBV2.createTable(client)(tableName)(KeyType.HASH -> "id")
+    LocalDynamoDBV2.createTable(client)(publishedTableName)(
+      KeyType.HASH -> "id"
+    )
+    LocalDynamoDBV2.createTable(client)(compositeKeyTableName)(
+      KeyType.HASH -> "atomType",
+      KeyType.RANGE -> "id"
+    )
+
     val previewDb =
       new PreviewDynamoDataStoreV2(LocalDynamoDBV2.client(), tableName)
     val compositeKeyDb = new PreviewDynamoDataStoreV2(
@@ -39,9 +47,16 @@ class DynamoDataStoreV2Spec
       LocalDynamoDBV2.client(),
       publishedTableName
     )
-    super.withFixture(
-      test.toNoArgTest(DataStoresV2(previewDb, publishedDb, compositeKeyDb))
-    )
+
+    try {
+      super.withFixture(
+        test.toNoArgTest(DataStoresV2(previewDb, publishedDb, compositeKeyDb))
+      )
+    } finally {
+      LocalDynamoDBV2.deleteTable(client)(tableName)
+      LocalDynamoDBV2.deleteTable(client)(publishedTableName)
+      LocalDynamoDBV2.deleteTable(client)(compositeKeyTableName)
+    }
   }
 
   describe("DynamoDataStore") {
@@ -202,20 +217,4 @@ class DynamoDataStoreV2Spec
     }
   }
   val client = LocalDynamoDBV2.client()
-  override def beforeEach() = {
-    LocalDynamoDBV2.createTable(client)(tableName)(KeyType.HASH -> "id")
-    LocalDynamoDBV2.createTable(client)(publishedTableName)(
-      KeyType.HASH -> "id"
-    )
-    LocalDynamoDBV2.createTable(client)(compositeKeyTableName)(
-      KeyType.HASH -> "atomType",
-      KeyType.RANGE -> "id"
-    )
-  }
-
-  override def afterEach(): Unit = {
-    LocalDynamoDBV2.deleteTable(client)(tableName)
-    LocalDynamoDBV2.deleteTable(client)(publishedTableName)
-    LocalDynamoDBV2.deleteTable(client)(compositeKeyTableName)
-  }
 }
