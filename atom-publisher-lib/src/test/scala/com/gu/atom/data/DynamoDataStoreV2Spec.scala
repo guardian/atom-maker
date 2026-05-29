@@ -5,13 +5,14 @@ import com.gu.atom.util.{AtomImplicitsGeneral, JsonSupport}
 import com.gu.contentatom.thrift.Atom
 import org.scalatest.funspec.FixtureAnyFunSpec
 import org.scalatest.matchers.should._
-import org.scalatest.{BeforeAndAfterEach, OptionValues}
+import org.scalatest.{BeforeAndAfterEach, EitherValues, OptionValues}
 import software.amazon.awssdk.services.dynamodb.model.KeyType
 
 class DynamoDataStoreV2Spec
     extends FixtureAnyFunSpec
     with Matchers
     with OptionValues
+    with EitherValues
     with BeforeAndAfterEach
     with AtomImplicitsGeneral {
 
@@ -80,6 +81,26 @@ class DynamoDataStoreV2Spec
 
       dataStores.published.updateAtom(updated) should equal(Right(updated))
       dataStores.published.getAtom(testAtom.id) should equal(Right(updated))
+    }
+
+    it("should scan atoms in pages") { dataStores =>
+      for (i <- 1 to 104) dataStores.preview.createAtom(testAtom(i.toString))
+
+      val scanResult1 = dataStores.preview.scanPage(maybeExclusiveStartKey = None)
+
+      val continuationKey = scanResult1.value._2
+
+      scanResult1.value._1.size should equal(100)
+
+      val scanResult2 = dataStores.preview.scanPage(maybeExclusiveStartKey = continuationKey)
+
+      scanResult2.value._1.size should equal(4)
+
+      // ids from the first page of results should not be present in the second page
+      scanResult1.value._1.map(_.id) should not contain scanResult2.value._1.head.id
+
+      // continuation key should be unset as no more pages to scan
+      scanResult2.value._2 should be (empty)
     }
 
     it("should create the atom with composite key") { dataStores =>

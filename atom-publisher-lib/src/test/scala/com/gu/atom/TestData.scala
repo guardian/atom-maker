@@ -86,7 +86,9 @@ object TestData {
 
   def testAtomEvents = testAtoms.map(testAtomEvent)
 
-  val testAtom = testAtoms.head
+  val testAtom: Atom = testAtoms.head
+
+  def testAtom(idOverride: String): Atom = testAtom.copy(id = idOverride)
 
   val testAtomForDeletion = Atom(
     id = "delete",
