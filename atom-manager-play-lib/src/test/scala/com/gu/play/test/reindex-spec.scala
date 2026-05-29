@@ -1,11 +1,12 @@
-package com.gu.atom.play.test
+package com.gu.play.test
 
 import com.gu.atom.play.ReindexController
-import com.gu.atom.publish._
-import org.mockito.ArgumentMatchers._
+import com.gu.atom.reindex._
 import org.mockito.Mockito._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+
+import scala.util.Success
 
 class ReindexSpec extends AtomSuite {
 
@@ -13,15 +14,18 @@ class ReindexSpec extends AtomSuite {
 
   val reindexApiKey = "xyzzy"
 
+  def newReindexJob = ReindexJob(
+    status = ReindexJob.inProgress, startedAt = "123", documentsExpected = 500, documentsIndexed = 0
+  )
+
   override def customOverrides = {
-
     super.customOverrides :+ mbind[PublishedAtomReindexer] { (r: AtomReindexer) =>
-      when(r.startReindexJob(any(), any())).thenReturn(AtomReindexJob.empty)
+      when(r.startReindex()).thenReturn(Success(newReindexJob))
     } :+ mbind[PreviewAtomReindexer] { (r: AtomReindexer) =>
-      when(r.startReindexJob(any(), any())).thenReturn(AtomReindexJob.empty)
+      when(r.startReindex()).thenReturn(Success(newReindexJob))
     }
-
   }
+
   override def customConfig = super.customConfig + ("reindexApiKey" -> reindexApiKey)
 
   "preview reindex api" should {

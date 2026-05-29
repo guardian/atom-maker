@@ -1,4 +1,4 @@
-package com.gu.atom.play.test
+package com.gu.play.test
 
 import java.util.Date
 import com.gu.atom.TestData._
