@@ -5,7 +5,7 @@ import io.circe.generic.semiauto._
 
 case class ReindexJob(
   status: String,
-  created: String,
+  startedAt: String,
   documentsExpected: Long,
   documentsIndexed: Long
 )
@@ -22,7 +22,7 @@ object ReindexJob {
 
   val statusField =
     "jobStatus" // 'status' is a reserved dynamo keyword
-  val createdField = "created"
+  val startedAtField = "startedAt"
   val documentsExpectedField = "documentsExpected"
   val documentsIndexedField = "documentsIndexed"
 }

@@ -17,7 +17,7 @@ class DynamoReindexDataStoreV2(
   override def create(documentsExpected: Long): Option[ReindexJob] = {
     val newReindexJob = ReindexJob(
       status = ReindexJob.inProgress,
-      created = ZonedDateTime
+      startedAt = ZonedDateTime
         .now(ZoneId.of("Europe/London"))
         .format(timestampFormatter),
       documentsExpected = documentsExpected,
@@ -69,11 +69,11 @@ class DynamoReindexDataStoreV2(
     response.items().asScala.map { item =>
       ReindexJob(
         status = item.get(ReindexJob.statusField).s(),
-        created = item.get(ReindexJob.createdField).s(),
+        startedAt = item.get(ReindexJob.startedAtField).s(),
         documentsExpected = item.get(ReindexJob.documentsExpectedField).n().toLong,
         documentsIndexed = item.get(ReindexJob.documentsIndexedField).n().toLong
       )
-    }.maxByOption(_.created)
+    }.maxByOption(_.startedAt)
   }
 
   override def getInProgress(): Option[ReindexJob] = {
@@ -90,7 +90,7 @@ class DynamoReindexDataStoreV2(
       Some(
         ReindexJob(
           status = item.get(ReindexJob.statusField).s(),
-          created = item.get(ReindexJob.createdField).s(),
+          startedAt = item.get(ReindexJob.startedAtField).s(),
           documentsExpected = item.get(ReindexJob.documentsExpectedField).n().toLong,
           documentsIndexed = item.get(ReindexJob.documentsIndexedField).n().toLong
         )
@@ -163,7 +163,7 @@ class DynamoReindexDataStoreV2(
 
   private def itemFor(reindexJob: ReindexJob): Map[String, AttributeValue] = {
     keyFor(reindexJob.status) ++ Map(
-      ReindexJob.createdField -> AttributeValue.fromS(reindexJob.created),
+      ReindexJob.startedAtField -> AttributeValue.fromS(reindexJob.startedAt),
       ReindexJob.documentsExpectedField -> AttributeValue.fromN(
         reindexJob.documentsExpected.toString
       ),
