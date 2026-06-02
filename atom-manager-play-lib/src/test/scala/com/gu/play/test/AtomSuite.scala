@@ -1,4 +1,4 @@
-package com.gu.atom.play.test
+package com.gu.play.test
 
 import com.gu.atom.TestData
 import com.gu.atom.data._

@@ -5,14 +5,14 @@ import com.gu.atom.util.{AtomImplicitsGeneral, JsonSupport}
 import com.gu.contentatom.thrift.Atom
 import org.scalatest.funspec.FixtureAnyFunSpec
 import org.scalatest.matchers.should._
-import org.scalatest.{BeforeAndAfterAll, OptionValues}
+import org.scalatest.{EitherValues, OptionValues}
 import software.amazon.awssdk.services.dynamodb.model.KeyType
 
 class DynamoDataStoreV2Spec
     extends FixtureAnyFunSpec
     with Matchers
     with OptionValues
-    with BeforeAndAfterAll
+    with EitherValues
     with AtomImplicitsGeneral {
 
   val tableName = "atom-test-table"
@@ -28,6 +28,15 @@ class DynamoDataStoreV2Spec
   type FixtureParam = DataStoresV2
 
   def withFixture(test: OneArgTest) = {
+    LocalDynamoDBV2.createTable(client)(tableName)(KeyType.HASH -> "id")
+    LocalDynamoDBV2.createTable(client)(publishedTableName)(
+      KeyType.HASH -> "id"
+    )
+    LocalDynamoDBV2.createTable(client)(compositeKeyTableName)(
+      KeyType.HASH -> "atomType",
+      KeyType.RANGE -> "id"
+    )
+
     val previewDb =
       new PreviewDynamoDataStoreV2(LocalDynamoDBV2.client(), tableName)
     val compositeKeyDb = new PreviewDynamoDataStoreV2(
@@ -38,9 +47,16 @@ class DynamoDataStoreV2Spec
       LocalDynamoDBV2.client(),
       publishedTableName
     )
-    super.withFixture(
-      test.toNoArgTest(DataStoresV2(previewDb, publishedDb, compositeKeyDb))
-    )
+
+    try {
+      super.withFixture(
+        test.toNoArgTest(DataStoresV2(previewDb, publishedDb, compositeKeyDb))
+      )
+    } finally {
+      LocalDynamoDBV2.deleteTable(client)(tableName)
+      LocalDynamoDBV2.deleteTable(client)(publishedTableName)
+      LocalDynamoDBV2.deleteTable(client)(compositeKeyTableName)
+    }
   }
 
   describe("DynamoDataStore") {
@@ -50,18 +66,20 @@ class DynamoDataStoreV2Spec
     }
 
     it("should list all atoms of all types") { dataStores =>
-      dataStores.preview.createAtom(testAtoms(1))
-      dataStores.preview.createAtom(testAtoms(2))
+      for (atom <- testAtoms) dataStores.preview.createAtom(atom)
+
       dataStores.preview.listAtoms
         .map(_.toList)
         .fold(identity, res => res should contain theSameElementsAs testAtoms)
     }
 
     it("should return the atom") { dataStores =>
+      dataStores.preview.createAtom(testAtom)
       dataStores.preview.getAtom(testAtom.id) should equal(Right(testAtom))
     }
 
     it("should update the atom") { dataStores =>
+      dataStores.preview.createAtom(testAtom)
       val updated = testAtom
         .copy(defaultHtml = "<div>updated</div>")
         .bumpRevision
@@ -71,12 +89,33 @@ class DynamoDataStoreV2Spec
     }
 
     it("should update a published atom") { dataStores =>
+      dataStores.preview.createAtom(testAtom)
       val updated = testAtom
         .copy()
         .withRevision(1)
 
       dataStores.published.updateAtom(updated) should equal(Right(updated))
       dataStores.published.getAtom(testAtom.id) should equal(Right(updated))
+    }
+
+    it("should scan atoms in pages") { dataStores =>
+      for (i <- 1 to 104) dataStores.preview.createAtom(testAtom(i.toString))
+
+      val scanResult1 = dataStores.preview.scanPage(maybeExclusiveStartKey = None)
+
+      val continuationKey = scanResult1.value._2
+
+      scanResult1.value._1.size should equal(100)
+
+      val scanResult2 = dataStores.preview.scanPage(maybeExclusiveStartKey = continuationKey)
+
+      scanResult2.value._1.size should equal(4)
+
+      // ids from the first page of results should not be present in the second page
+      scanResult1.value._1.map(_.id) should not contain scanResult2.value._1.head.id
+
+      // continuation key should be unset as no more pages to scan
+      scanResult2.value._2 should be (empty)
     }
 
     it("should create the atom with composite key") { dataStores =>
@@ -87,12 +126,22 @@ class DynamoDataStoreV2Spec
     }
 
     it("should return the atom with composite key") { dataStores =>
+      dataStores.compositeKey.createAtom(
+        DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id)),
+        testAtom
+      )
+
       dataStores.compositeKey.getAtom(
         DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id))
       ) should equal(Right(testAtom))
     }
 
     it("should update an atom with composite key") { dataStores =>
+      dataStores.compositeKey.createAtom(
+        DynamoCompositeKey(testAtom.atomType.toString, Some(testAtom.id)),
+        testAtom
+      )
+
       val updated = testAtom
         .copy(defaultHtml = "<div>updated</div>")
         .bumpRevision
@@ -168,20 +217,4 @@ class DynamoDataStoreV2Spec
     }
   }
   val client = LocalDynamoDBV2.client()
-  override def beforeAll() = {
-    LocalDynamoDBV2.createTable(client)(tableName)(KeyType.HASH -> "id")
-    LocalDynamoDBV2.createTable(client)(publishedTableName)(
-      KeyType.HASH -> "id"
-    )
-    LocalDynamoDBV2.createTable(client)(compositeKeyTableName)(
-      KeyType.HASH -> "atomType",
-      KeyType.RANGE -> "id"
-    )
-  }
-
-  override def afterAll(): Unit = {
-    LocalDynamoDBV2.deleteTable(client)(tableName)
-    LocalDynamoDBV2.deleteTable(client)(publishedTableName)
-    LocalDynamoDBV2.deleteTable(client)(compositeKeyTableName)
-  }
 }

@@ -1,6 +1,7 @@
 package com.gu.atom.data
 
 import com.gu.contentatom.thrift.Atom
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 sealed abstract class DataStoreError(val msg: String) extends Exception(msg)
 
@@ -15,6 +16,8 @@ case class  DecoderError(info: String) extends DataStoreError(s"Error decoding j
 
 trait AtomDataStore extends DataStoreResultUtil {
 
+  type ContinuationKey = java.util.Map[String, AttributeValue]
+
   def getAtom(id: String): DataStoreResult[Atom]
 
   def getAtom(dynamoCompositeKey: DynamoCompositeKey): DataStoreResult[Atom]
@@ -24,6 +27,10 @@ trait AtomDataStore extends DataStoreResultUtil {
   def createAtom(dynamoCompositeKey: DynamoCompositeKey, atom: Atom): DataStoreResult[Atom]
 
   def listAtoms: DataStoreResult[List[Atom]]
+
+  def itemCount: DataStoreResult[Long]
+
+  def scanPage(maybeExclusiveStartKey: Option[ContinuationKey]): DataStoreResult[(List[Atom], Option[ContinuationKey])]
 
   /* this will only allow the update if the version in atom is later
  * than the version stored in the database, otherwise it will report
