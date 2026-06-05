@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules"     %% "scala-collection-compat" % "2.8.1",
   "org.typelevel"              %% "cats-core"             % "2.10.0",
   "io.circe"                   %% "circe-parser"          % "0.14.3",
-  "com.gu"                     %% "fezziwig"              % "1.9.2",
+  "com.gu"                     %% "fezziwig"              % "2.0.1",
   "com.gu"                     %% "content-atom-model"    % contentAtomVersion,
   "com.typesafe.scala-logging" %% "scala-logging"         % "3.9.5",
   "com.twitter"                %% "scrooge-serializer"    % scroogeVersion,
