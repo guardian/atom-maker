@@ -10,6 +10,7 @@ dependencyOverrides ++= Seq(
 )
 
 libraryDependencies ++= Seq(
+  "at.yawk.lz4" % "lz4-java" % "1.11.4",
   "com.google.guava" % "guava" % "33.7.2-jre",
   "com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
   "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
@@ -25,3 +26,5 @@ libraryDependencies ++= Seq(
   "org.mockito"            %  "mockito-core"          % mockitoVersion % Test,
   "org.playframework"      %% "play-test"             % playVersion % Test
 )
+
+excludeDependencies += ExclusionRule("org.lz4", "lz4-java")
