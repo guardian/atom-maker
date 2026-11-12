@@ -4,7 +4,7 @@ import com.gu.atom.play.ReindexController
 import com.gu.atom.reindex._
 import org.mockito.Mockito._
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import com.gu.play.test.NonBrowserHelpers._
 
 import scala.util.Success
 

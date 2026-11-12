@@ -28,3 +28,10 @@ libraryDependencies ++= Seq(
 )
 
 excludeDependencies += ExclusionRule("org.lz4", "lz4-java")
+
+// Tests use PlaySpec and FakeRequest, not browser helpers. Keep play-test itself.
+excludeDependencies ++= Seq(
+  ExclusionRule(organization = "io.fluentlenium"),
+  ExclusionRule(organization = "org.seleniumhq.selenium"),
+  ExclusionRule("org.scalatestplus", "selenium-4-12_2.13")
+)
