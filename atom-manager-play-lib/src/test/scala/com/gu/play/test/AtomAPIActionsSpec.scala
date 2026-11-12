@@ -10,7 +10,7 @@ import org.mockito.Mockito._
 import org.scalatest.Inside
 import play.api.mvc.{AbstractController, BaseController}
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import com.gu.play.test.NonBrowserHelpers._
 
 class AtomAPIActionsSpec extends AtomSuite with Inside {
 
