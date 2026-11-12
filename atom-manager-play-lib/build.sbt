@@ -4,6 +4,11 @@ name := "atom-manager-play"
 
 val jacksonVersion = "2.18.11"
 
+dependencyOverrides ++= Seq(
+  "ch.qos.logback" % "logback-core" % "1.5.34",
+  "ch.qos.logback" % "logback-classic" % "1.5.34"
+)
+
 libraryDependencies ++= Seq(
   "com.google.guava" % "guava" % "33.7.2-jre",
   "com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
