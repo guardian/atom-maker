@@ -5,6 +5,7 @@ name := "atom-manager-play"
 val jacksonVersion = "2.18.11"
 
 libraryDependencies ++= Seq(
+  "com.google.guava" % "guava" % "33.7.2-jre",
   "com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
   "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
   "com.fasterxml.jackson.core" % "jackson-annotations" % jacksonVersion,
