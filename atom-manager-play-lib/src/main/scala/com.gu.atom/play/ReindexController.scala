@@ -25,7 +25,7 @@ class ReindexController @Inject()(
     private lazy val apiKey = config.get[String]("reindexApiKey")
 
     def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
-      if(request.getQueryString("api").contains(apiKey))
+      if(request.headers.get("x-api-key").contains(apiKey))
         block(request)
       else
         Future.successful(Unauthorized(""))
